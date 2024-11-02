@@ -33,11 +33,28 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
       }
     }
    }
-
+  void set_humidity_sensor(sensor::Sensor *sensor) { this->humidity_sensor_ = sensor; }
+  void on_humidity(uint16_t humidity) override {
+    if (this->humidity_sensor_ != nullptr) {
+      if (this->humidity_sensor_->get_state() != humidity) {
+        this->humidity_sensor_->publish_state(humidity);
+      }
+    }
+  }
+  void set_humidity_percentage_sensor(sensor::Sensor *sensor) { this->humidity_percentage_sensor_ = sensor; }
+  void on_humidity_percentage(uint16_t humidity_percentage) override {
+    if (this->humidity_percentage_sensor_ != nullptr) {
+      if (this->humidity_percentage_sensor_->get_state() != humidity_percentage) {
+        this->humidity_percentage_sensor_->publish_state(humidity_percentage);
+      }
+    }
+  }
  protected:
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *temperature_setting_sensor_{nullptr};
   sensor::Sensor *remaining_time_sensor_{nullptr};
+  sensor::Sensor *humidity_sensor_{nullptr};
+  sensor::Sensor *humidity_percentage_sensor_{nullptr};
 };
 
 }  // namespace sauna360

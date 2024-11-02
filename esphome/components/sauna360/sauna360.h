@@ -4,6 +4,7 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
+#include "esphome/core/gpio.h"
 
 #ifdef USE_TIME
 #include "esphome/components/time/real_time_clock.h"
@@ -26,6 +27,8 @@ class SAUNA360Listener {
    virtual void on_temperature(uint16_t temperature){};
    virtual void on_temperature_setting(uint16_t temperature_setting){};
    virtual void on_remaining_time(uint16_t remaining_time){};
+   virtual void on_humidity(uint16_t humidity){};
+   virtual void on_humidity_percentage(uint16_t humidity_percentage){};
 };
 
 class SAUNA360Component : public uart::UARTDevice, public Component {
@@ -44,32 +47,25 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_pure_power_toggle_button(button::Button *button) { this->set_pure_power_toggle_button_ = button; };
     button::Button *set_pure_power_toggle_button_{nullptr};
    #endif
-    void send();
     void apply_elite_heater_on_action();
     void apply_elite_heater_off_action();
     void apply_elite_heater_standby_action();
     void apply_pure_power_toggle_action();
-   #ifdef USE_TIME
-    void set_time_id(time::RealTimeClock *time_id) { this->time_id_ = time_id; }
-    void set_time_device_address(uint16_t address) { this->time_device_address_ = address; }
-    void send_time() { this->send_time_requested_ = true; }
-   #endif
+    void set_flow_control_pin(GPIOPin *flow_control_pin) { this->flow_control_pin_ = flow_control_pin; }
 
   protected:
+    GPIOPin *flow_control_pin_{nullptr};
     void handle_char_(uint8_t c);
     void handle_frame_(std::vector<uint8_t> frame);
     void handle_packet_(std::vector<uint8_t> packet);
+    void send_data_();
     std::vector<uint8_t> rx_message_;
     std::queue<std::vector<uint8_t>> tx_queue_;
     uint32_t last_rx_;
     uint32_t last_tx_;
+    uint32_t last_frame_;
+    uint32_t last_component_loop_;
     std::vector<SAUNA360Listener *> listeners_{};
-   #ifdef USE_TIME
-    time::RealTimeClock *time_id_{nullptr};
-    uint16_t time_device_address_;
-    bool send_time_requested_;
-    bool do_send_time_();
-   #endif
 };
 
 

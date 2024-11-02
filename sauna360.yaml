@@ -8,10 +8,13 @@ esphome:
   name: ${device_name}
   comment: ${device_name} sauna controller
   area: Sauna
+  platformio_options:
+    board_build.flash_mode: dio
 
 esp32:
   #change right board for your device
-  board: m5stack-atom
+  board: esp32-s3-devkitc-1
+  flash_size: 8MB
   framework:
     type: esp-idf
 
@@ -35,7 +38,7 @@ wifi:
   #recommended to manually configure ip address
   manual_ip:
     # Set this to the IP of the ESPhome device
-    static_ip: 192.168.1.174
+    static_ip: 192.168.1.176
     # Set this to the IP address of the router. Often ends with .1
     gateway: 192.168.1.1
     # The subnet of the network. 255.255.255.0 works for most home networks.
@@ -43,14 +46,15 @@ wifi:
 
 uart:
   # change right pins for your ESPhome device
-  tx_pin: GPIO26
-  rx_pin: GPIO32
+  tx_pin: GPIO5
+  rx_pin: GPIO6
   baud_rate: 19200
   data_bits: 8
   parity: EVEN
   stop_bits: 1
 
 sauna360:
+  flow_control_pin: GPIO7
 
 sensor:
 - platform: wifi_signal
@@ -65,6 +69,12 @@ sensor:
 - platform: sauna360
   remaining_time:
     name: "Remaining time"
+- platform: sauna360
+  humidity_setting:
+    name: "Setting Humidity"
+- platform: sauna360
+  humidity_percentage:
+    name: "Humidity"
 
 button:
 - platform: sauna360

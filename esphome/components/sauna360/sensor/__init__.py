@@ -21,6 +21,8 @@ SAUNA360Sensor = sauna360_ns.class_("SAUNA360Sensor", sensor.Sensor, cg.Componen
 CONF_CURRENT_TEMPERATURE = "current_temperature"
 CONF_SETTING_TEMPERATURE = "setting_temperature"
 CONF_REMAINING_TIME = "remaining_time"
+CONF_HUMIDITY_SETTING = "humidity_setting"
+CONF_HUMIDITY_PERCENTAGE = "humidity_percentage"
 
 CONFIG_SCHEMA = cv.All(
     cv.COMPONENT_SCHEMA.extend(
@@ -44,6 +46,17 @@ CONFIG_SCHEMA = cv.All(
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
             ),
+          cv.Optional(CONF_HUMIDITY_SETTING): sensor.sensor_schema(
+            unit_of_measurement="",
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
+          cv.Optional(CONF_HUMIDITY_PERCENTAGE): sensor.sensor_schema(
+            unit_of_measurement="%",
+            accuracy_decimals=0,
+            device_class="humidity",
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
         }
     ),
 )
@@ -61,4 +74,10 @@ async def to_code(config):
       sens = await sensor.new_sensor(config[CONF_REMAINING_TIME])
       cg.add(var.set_remaining_time_sensor(sens))
     sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
+    if CONF_HUMIDITY_SETTING in config:
+      sens = await sensor.new_sensor(config[CONF_HUMIDITY_SETTING])
+      cg.add(var.set_humidity_sensor(sens))
+    if CONF_HUMIDITY_PERCENTAGE in config:
+      sens = await sensor.new_sensor(config[CONF_HUMIDITY_PERCENTAGE])
+      cg.add(var.set_humidity_percentage_sensor(sens))
     cg.add(sauna360.register_listener(var))
