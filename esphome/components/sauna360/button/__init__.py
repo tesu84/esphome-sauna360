@@ -14,10 +14,10 @@ SAUNA360HeaterOffButton = sauna360_ns.class_("SAUNA360HeaterOffButton", button.B
 SAUNA360HeaterStandbyButton = sauna360_ns.class_("SAUNA360HeaterStandbyButton", button.Button)
 SAUNA360HeaterPowerToggleButton = sauna360_ns.class_("SAUNA360HeaterPowerToggleButton", button.Button)
 
-CONF_SAUNA_ON = "elite_heater_on"
-CONF_SAUNA_OFF = "elite_heater_off"
-CONF_SAUNA_STANDBY = "elite_heater_standby"
-CONF_SAUNA_POWER_TOGGLE = "pure_power_toggle"
+CONF_SAUNA_ON = "heater_on"
+CONF_SAUNA_OFF = "heater_off"
+CONF_SAUNA_STANDBY = "heater_standby"
+CONF_SAUNA_POWER_TOGGLE = "heater_power_toggle"
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_SAUNA360_ID): cv.use_id(SAUNA360Component),
@@ -39,22 +39,21 @@ CONFIG_SCHEMA = {
     ),
 }
 
-
 async def to_code(config):
     sauna360_component = await cg.get_variable(config[CONF_SAUNA360_ID])
-    if elite_heater_on := config.get(CONF_SAUNA_ON):
-        b = await button.new_button(elite_heater_on)
+    if heater_on := config.get(CONF_SAUNA_ON):
+        b = await button.new_button(heater_on)
         await cg.register_parented(b, config[CONF_SAUNA360_ID])
-        cg.add(sauna360_component.set_elite_heater_on_button(b))
-    if elite_heater_off := config.get(CONF_SAUNA_OFF):
-        b = await button.new_button(elite_heater_off)
+        cg.add(sauna360_component.set_heater_on_button(b))
+    if heater_off := config.get(CONF_SAUNA_OFF):
+        b = await button.new_button(heater_off)
         await cg.register_parented(b, config[CONF_SAUNA360_ID])
-        cg.add(sauna360_component.set_elite_heater_off_button(b))
-    if elite_heater_standby := config.get(CONF_SAUNA_STANDBY):
-        b = await button.new_button(elite_heater_standby)
+        cg.add(sauna360_component.set_heater_off_button(b))
+    if heater_standby := config.get(CONF_SAUNA_STANDBY):
+        b = await button.new_button(heater_standby)
         await cg.register_parented(b, config[CONF_SAUNA360_ID])
-        cg.add(sauna360_component.set_elite_heater_standby_button(b))
-    if pure_power_toggle := config.get(CONF_SAUNA_POWER_TOGGLE):  
-        b = await button.new_button(pure_power_toggle)
+        cg.add(sauna360_component.set_heater_standby_button(b))
+    if heater_power_toggle := config.get(CONF_SAUNA_POWER_TOGGLE):  
+        b = await button.new_button(heater_power_toggle)
         await cg.register_parented(b, config[CONF_SAUNA360_ID])
-        cg.add(sauna360_component.set_pure_power_toggle_button(b))
+        cg.add(sauna360_component.set_heater_power_toggle_button(b))

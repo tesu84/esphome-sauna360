@@ -6,6 +6,7 @@ external_components:
 
 esphome:
   name: ${device_name}
+  friendly_name: ${device_name}
   comment: ${device_name} sauna controller
   area: Sauna
   platformio_options:
@@ -16,7 +17,7 @@ esp32:
   board: esp32-s3-devkitc-1
   flash_size: 8MB
   framework:
-    type: esp-idf
+    type: arduino #arduino or esp-idf tested on both
 
 # Enable logging
 logger:
@@ -38,23 +39,39 @@ wifi:
   #recommended to manually configure ip address
   manual_ip:
     # Set this to the IP of the ESPhome device
-    static_ip: 192.168.1.176
+    static_ip: 192.168.1.192
     # Set this to the IP address of the router. Often ends with .1
     gateway: 192.168.1.1
     # The subnet of the network. 255.255.255.0 works for most home networks.
     subnet: 255.255.255.0
 
+#for faster debug or as an interface
+web_server:
+  port: 80
+  version: 3
+
 uart:
-  # change right pins for your ESPhome device
-  tx_pin: GPIO5
-  rx_pin: GPIO6
-  baud_rate: 19200
-  data_bits: 8
-  parity: EVEN
-  stop_bits: 1
+    # change right pins for your ESPhome device
+    rx_pin: GPIO5
+    tx_pin: GPIO6
+    baud_rate: 19200
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 1
 
 sauna360:
-  flow_control_pin: GPIO7
+  flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
+
+binary_sensor:
+- platform: sauna360
+  heater_status:
+    name: "Heater Status"
+- platform: sauna360
+  light_status:
+    name: "Light Status"
+- platform: sauna360
+  ready_status: 
+    name: "Ready Status"
 
 sensor:
 - platform: wifi_signal
@@ -78,14 +95,29 @@ sensor:
 
 button:
 - platform: sauna360
-  elite_heater_on: #use only if elite panel
+  heater_on:
     name: "On"
 - platform: sauna360
-  elite_heater_off: #use only if elite panel
-    name: "Off"
+  heater_off:
+    name: "Off "
 - platform: sauna360
-  elite_heater_standby: #use only if elite panel
+  heater_standby: #use only if elite panel
     name: "Standby"
 - platform: sauna360
-  pure_power_toggle: #use only if pure panel
+  heater_power_toggle:
     name: "Power Toggle"
+
+- platform: restart
+  name: "ESPHome Device Restart"
+
+number: #not fully implemented yet
+- platform: sauna360
+  bath_time:
+    name: "Bath Time"
+    mode: box # box / slider
+    bath_time_default: 90 #5-360
+- platform: sauna360
+  bath_temperature:
+    name: "Bath Temperature"
+    mode: box # box / slider
+    bath_temperature_default: 65 #40-110

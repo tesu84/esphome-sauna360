@@ -30,7 +30,9 @@ FINAL_VALIDATE_SCHEMA = uart.final_validate_device_schema(
   "sauna360_uart",
   require_tx=True,
   require_rx=True,
+  baud_rate=19200,
   parity="EVEN",
+  data_bits=8,
   stop_bits=1,
 )
 
