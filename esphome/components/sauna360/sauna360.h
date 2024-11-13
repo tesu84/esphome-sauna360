@@ -61,20 +61,20 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void apply_heater_off_action();
     void apply_heater_standby_action();
     void apply_heater_power_toggle_action();
-    void set_bath_time(uint8_t value);
-    void set_bath_time_number(uint8_t value);
+    void set_bath_time_number(float value);
     void set_bath_time_default_value(float bath_time_default) { bath_time_default_ = bath_time_default; }
-    void set_bath_temperature(uint8_t value);
-    void set_bath_temperature_number(uint8_t value);
+    void set_bath_temperature_number(float value);
     void set_bath_temperature_default_value(float bath_temperature_default) { bath_temperature_default_ = bath_temperature_default; }
     void set_flow_control_pin(GPIOPin *flow_control_pin) { this->flow_control_pin_ = flow_control_pin; }
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};
+    bool flow_control_pin_is_set_;
     void handle_char_(uint8_t c);
     void handle_frame_(std::vector<uint8_t> frame);
     void handle_packet_(std::vector<uint8_t> packet);
     void send_data_();
+    void create_send_data_(uint8_t type, uint16_t code, uint32_t data);
     std::vector<uint8_t> rx_message_;
     std::vector<uint8_t> byte_swapped_packet_;
     std::queue<std::vector<uint8_t>> tx_queue_;

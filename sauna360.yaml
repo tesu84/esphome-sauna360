@@ -1,3 +1,5 @@
+#example configuration
+
 substitutions:
   device_name: helo
 
@@ -16,8 +18,8 @@ esp32:
   #change right board for your device
   board: esp32-s3-devkitc-1
   flash_size: 8MB
-  framework:
-    type: arduino #arduino or esp-idf tested on both
+#  framework:
+#    type: arduino #arduino or esp-idf tested on both
 
 # Enable logging
 logger:
@@ -45,7 +47,7 @@ wifi:
     # The subnet of the network. 255.255.255.0 works for most home networks.
     subnet: 255.255.255.0
 
-#for faster debug or as an interface
+#for faster debug or as an interface take resources. should turn off if not in use
 web_server:
   port: 80
   version: 3
@@ -87,10 +89,10 @@ sensor:
   remaining_time:
     name: "Remaining time"
 - platform: sauna360
-  humidity_setting:
+  humidity_setting: #combi/steam models
     name: "Setting Humidity"
 - platform: sauna360
-  humidity_percentage:
+  humidity_percentage: #combi/steam models
     name: "Humidity"
 
 button:
@@ -101,7 +103,7 @@ button:
   heater_off:
     name: "Off "
 - platform: sauna360
-  heater_standby: #use only if elite panel
+  heater_standby: #use only if elite panel and stanby setting is on from panel.
     name: "Standby"
 - platform: sauna360
   heater_power_toggle:
@@ -110,14 +112,14 @@ button:
 - platform: restart
   name: "ESPHome Device Restart"
 
-number: #not fully implemented yet
+number:
 - platform: sauna360
   bath_time:
     name: "Bath Time"
     mode: box # box / slider
-    bath_time_default: 90 #5-360
+    bath_time_default: 90 #5-360min
 - platform: sauna360
   bath_temperature:
     name: "Bath Temperature"
     mode: box # box / slider
-    bath_temperature_default: 65 #40-110
+    bath_temperature_default: 65 #40-110°C
