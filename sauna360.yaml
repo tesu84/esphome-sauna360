@@ -54,15 +54,15 @@ web_server:
 
 uart:
     # change right pins for your ESPhome device
-    rx_pin: GPIO5
-    tx_pin: GPIO6
+    rx_pin: GPIO1
+    tx_pin: GPIO2
     baud_rate: 19200
     data_bits: 8
     parity: EVEN
     stop_bits: 1
 
 sauna360:
-  flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
+  #flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
 
 binary_sensor:
 - platform: sauna360
@@ -89,6 +89,9 @@ sensor:
   remaining_time:
     name: "Remaining time"
 - platform: sauna360
+  setting_bath_time:
+    name: "Setting Bath Time"
+- platform: sauna360
   humidity_setting: #combi/steam models
     name: "Setting Humidity"
 - platform: sauna360
@@ -108,9 +111,6 @@ button:
 - platform: sauna360
   heater_power_toggle:
     name: "Power Toggle"
-
-- platform: restart
-  name: "ESPHome Device Restart"
 
 number:
 - platform: sauna360

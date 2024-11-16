@@ -28,49 +28,45 @@ void SAUNA360Component::setup() {
 
 void SAUNA360Component::loop() {
 
-  const uint32_t now = millis();
-
   while (this->available()) {
-    this->last_rx_ = now;
     uint8_t c;
     this->read_byte(&c);
     this->handle_char_(c);
   }
 
-  if (this->rx_message_.empty() && (!this->tx_queue_.empty())){
-    // signal flow control write mode enabled here and delay send
-    if (this->flow_control_pin_ != nullptr && (!this->flow_control_pin_is_set_)) {
-      this->flow_control_pin_->digital_write(true);
-      this->flow_control_pin_is_set_ = true;
-      ESP_LOGCONFIG(TAG, "FLOW CONTROL ON"); // for debug
-      }
+  if ( (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 250)){
+  send_data_();
   }
-  //delayed send
-  if ((now - this->last_rx_ > 50) && (!this->tx_queue_.empty()) && (now - this->last_tx_ > 1000)){
-    send_data_();
-  }
+
 }
 
 void SAUNA360Component::handle_char_(uint8_t c) {
+
+  if (c == 0x98){
+    this->frame_flag_ = true;
+  }
+
+  if (c == 0x98 && this->frame_flag_ == true){
+    this->frame_flag_ = true;
+    this->rx_message_.clear();
+  }
 
   if (c == 0x9C) {
 
     std::vector<uint8_t> frame(this->rx_message_.begin(), this->rx_message_.end());
 
-    //for debug
     if ((frame[4] != 0xE3) && (frame[4] != 0x3A )) {
-      const uint32_t now_micros = micros();
-      ESP_LOGCONFIG(TAG, "Previous frame %zuus Received in %zuus %s" , micros()-this->last_frame_, micros()-now_micros,format_hex_pretty(frame).c_str());
-      this->last_frame_ = now_micros; //for debug
+      ESP_LOGCONFIG(TAG, "%s FRAME RECEIVED", format_hex_pretty(frame).c_str());
     }
     
     this->handle_frame_(frame);
     this->rx_message_.clear();
+    this->frame_flag_ = false;
     return;
   }
-
-  this->rx_message_.push_back(c);
-
+  if (this->frame_flag_ == true) {
+    this->rx_message_.push_back(c);
+  }
 }
 
  void SAUNA360Component::send_data_() {
@@ -79,20 +75,27 @@ void SAUNA360Component::handle_char_(uint8_t c) {
     if (!this->tx_queue_.empty()) {
       auto packet = std::move(this->tx_queue_.front());
       this->tx_queue_.pop();
-      ESP_LOGCONFIG(TAG, "%zu SENDING FROM TX QUEUE: %s" , millis(), format_hex_pretty(packet).c_str()); // for debug
-      this->write_byte(0x00);
+      ESP_LOGCONFIG(TAG, "%s SENDING FROM TX QUEUE:", format_hex_pretty(packet).c_str());
+
+      if (this->flow_control_pin_ != nullptr) {
+        ESP_LOGCONFIG(TAG, "FLOW CONTROL ON");
+      }
+      
+      //reserve bus for sending
+      for (int i = 1; i < 40; i++) {
+        write_byte(0x00);
+      }
+
       this->write_array(packet);
       this->flush();
       this->last_tx_ = millis();
-      ESP_LOGCONFIG(TAG, "DATA SENT SUCCESFULLY"); // for debug
 
-      // signal flow control write mode disabled
       if (this->flow_control_pin_ != nullptr) {
         this->flow_control_pin_->digital_write(false);
-        this->flow_control_pin_is_set_ = false;
-        ESP_LOGCONFIG(TAG, "FLOW CONTROL OFF"); // for debug
+        ESP_LOGCONFIG(TAG, "FLOW CONTROL OFF"); 
       }
     }
+    ESP_LOGCONFIG(TAG, "DATA SENT SUCCESFULLY %zuus", micros()-last_tx_);
   }
 
 void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
@@ -130,9 +133,8 @@ void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
    }
 
    else {
-    ESP_LOGCONFIG(TAG, "CRC ERROR: %s", format_hex_pretty(frame).c_str());
+    ESP_LOGCONFIG(TAG, "%s CRC ERROR", format_hex_pretty(frame).c_str());
    }
-
    frame.clear();
 }
 
@@ -149,7 +151,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   uint16_t code = encode_uint16(packet[2],packet[3]);
   uint32_t data = encode_uint32(packet[4],packet[5],packet[6],packet[7]);
 
-  //Only take codes from the heater to control
+  //Discard packets from panel to heater
   if ((packetType == 0x07) || (packetType == 0x09)) {
     packet.clear();
     return;
@@ -157,10 +159,11 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
 
   if (code == 0x6000){
     // temperature data point. Split into set point and actual value
-    int actualTemp = (data & 0x00007FF) / 9.0;
-    for (auto &listener : listeners_) {listener->on_temperature(actualTemp);}
-    int setPointTemp = ((data >> 11) & 0x00007FF) / 9.0;
-    for (auto &listener : listeners_) {listener->on_temperature_setting(setPointTemp);}
+    int actual_temp = (data & 0x00007FF) / 9.0;
+    this->temperature_received_hex_ = (data & 0x00007FF);
+    for (auto &listener : listeners_) {listener->on_temperature(actual_temp);}
+    int setpoint_temp = ((data >> 11) & 0x00007FF) / 9.0;
+    for (auto &listener : listeners_) {listener->on_temperature_setting(setpoint_temp);}
   }
 
   else if (code == 0x3400){
@@ -209,6 +212,18 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_remaining_time(data);}
   }
 
+  else if (code == 0x4002){
+    //  bath time
+     int value = (data & 0xFFF);
+      if ((value > 64) && (value < 124)) {value-=4;}
+      else if ((value >= 128) && (value < 188)) {value-=8;}
+      else if ((value >= 192) && (value < 252)) {value-=12;}
+      else if ((value >= 256) && (value < 316)) {value-=16;}
+      else if (value >= 230) {value-=20;}
+
+      for (auto &listener : listeners_) {listener->on_bath_time_setting(value);}
+  }
+
   else if (code == 0x4200){
     //  probably clock
   }
@@ -231,29 +246,27 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
 
   else {
-    ESP_LOGCONFIG(TAG, "Packet: %s" ,format_hex_pretty(packet).c_str());
-    ESP_LOGCONFIG(TAG, "Code: %04x" ,code);
-    ESP_LOGCONFIG(TAG, "Data: %08x" ,data);
+    ESP_LOGCONFIG(TAG, "%s PACKET NOT HANDLED. CODE %s DATA %s" , format_hex_pretty(packet).c_str(), format_hex_pretty(code).c_str(), format_hex_pretty(data).c_str());
   }
 
   packet.clear();
 }
 
 void SAUNA360Component::apply_heater_on_action() {
-  this->create_send_data_(0x07, 0x7000, 0x00004095);
+  this->create_send_data_(0x07, 0x7000, 0x00000040);
   ESP_LOGCONFIG(TAG, "SETTING HEATER ON");
     return;
   }
 
 void SAUNA360Component::apply_heater_off_action() {
-  this->create_send_data_(0x07, 0x7000, 0x0000808D);
+  this->create_send_data_(0x07, 0x7000, 0x00000080);
   ESP_LOGCONFIG(TAG, "SETTING HEATER OFF");
 
     return;
   }
 
 void SAUNA360Component::apply_heater_standby_action() {
-  this->create_send_data_(0x07, 0x7000, 0x00000094);
+  this->create_send_data_(0x07, 0x7000, 0x004000C0);
   ESP_LOGCONFIG(TAG, "SETTING HEATER STANDBY");
 
     return;
@@ -283,21 +296,25 @@ void SAUNA360Component::set_bath_time_number(float value) {
 void SAUNA360Component::set_bath_temperature_number(float value) {
 
   uint32_t data = (((uint32_t) value * 9 ) << 11);
+  data |= this->temperature_received_hex_;
 
-  this->create_send_data_(0x08, 0x6000, data);
-
+  this->create_send_data_(0x07, 0x6000, data);
 }
 
 void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t data) {
 
-  ESP_LOGCONFIG(TAG, "CREATING SEND DATA type:%s code:%s data:%s", format_hex_pretty(type).c_str(), format_hex_pretty(code).c_str(), format_hex_pretty(data).c_str());
+  ESP_LOGCONFIG(TAG, "CREATING SEND DATA TYPE:%s CODE:%s DATA:%s", format_hex_pretty(type).c_str(), format_hex_pretty(code).c_str(), format_hex_pretty(data).c_str());
 
   std::vector<uint8_t> packet;
   std::vector<uint8_t> packet_escaped;
 
-  uint8_t start = 0x98;
   uint8_t id = 0x40;
-  uint8_t end = 0x9C;
+  uint8_t eof = 0x9C;
+  uint8_t eof_esc = 0x63;
+  uint8_t sof = 0x98;
+  uint8_t sof_esc = 0x67;
+  uint8_t esc = 0x91;
+
   std::array<uint8_t, 2> code_array = decode_value(code);
   std::array<uint8_t, 4> data_array = decode_value(data);
 
@@ -318,11 +335,6 @@ void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t 
   for (int i = 0; i < sizeof(packet)-2; i++) {
 
     uint8_t d = ((uint8_t) packet[i]);
-    uint8_t eof = 0x9C;
-    uint8_t eof_esc = 0x9C;
-    uint8_t sof = 0x98;
-    uint8_t sof_esc = 0x67;
-    uint8_t esc = 0x91;
 
     if (d==sof){
       packet_escaped.push_back(esc);
@@ -334,17 +346,16 @@ void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t 
     }
     else if (d==esc){
       packet_escaped.push_back(esc);
-      packet_escaped.push_back(esc);
     }
     else{
       packet_escaped.push_back(d);
-      }
+    }
   }
 
-  packet_escaped.insert(packet_escaped.begin(),start);
-  packet_escaped.push_back(end);
+  packet_escaped.insert(packet_escaped.begin(),sof);
+  packet_escaped.push_back(eof);
 
-  ESP_LOGCONFIG(TAG, "CREATED PACKET: %s" ,format_hex_pretty(packet_escaped).c_str());
+  ESP_LOGCONFIG(TAG, "%s CREATED PACKET" ,format_hex_pretty(packet_escaped).c_str());
   this->tx_queue_.push(packet_escaped);
   packet.clear();
   packet_escaped.clear();

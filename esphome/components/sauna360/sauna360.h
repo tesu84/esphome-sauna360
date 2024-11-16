@@ -30,6 +30,7 @@ class SAUNA360Listener {
    virtual void on_remaining_time(uint16_t remaining_time){};
    virtual void on_humidity(uint16_t humidity){};
    virtual void on_humidity_percentage(uint16_t humidity_percentage){};
+   virtual void on_bath_time_setting (uint16_t bath_time_setting){};
    virtual void on_heater_status(bool heater_status){};
    virtual void on_light_status(bool light_status){};
    virtual void on_ready_status(bool ready_status){};
@@ -69,18 +70,17 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};
-    bool flow_control_pin_is_set_;
     void handle_char_(uint8_t c);
     void handle_frame_(std::vector<uint8_t> frame);
+    bool frame_flag_;
     void handle_packet_(std::vector<uint8_t> packet);
     void send_data_();
     void create_send_data_(uint8_t type, uint16_t code, uint32_t data);
     std::vector<uint8_t> rx_message_;
     std::vector<uint8_t> byte_swapped_packet_;
     std::queue<std::vector<uint8_t>> tx_queue_;
-    uint32_t last_rx_;
     uint32_t last_tx_;
-    uint32_t last_frame_;
+    uint32_t temperature_received_hex_;
     std::vector<SAUNA360Listener *> listeners_{};
 
     float bath_time_default_{NAN};

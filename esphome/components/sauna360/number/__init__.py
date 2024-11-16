@@ -23,6 +23,7 @@ CONF_BATH_TIME = "bath_time"
 CONF_BATH_TIME_DEFAULT = "bath_time_default"
 CONF_BATH_TEMPERATURE = "bath_temperature"
 CONF_BATH_TEMPERATURE_DEFAULT = "bath_temperature_default"
+CONF_DELAY_FINDER = "delay_finder"
 
 CONFIG_SCHEMA = cv.Schema(
     {
