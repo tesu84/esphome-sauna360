@@ -23,7 +23,6 @@ CONF_BATH_TIME = "bath_time"
 CONF_BATH_TIME_DEFAULT = "bath_time_default"
 CONF_BATH_TEMPERATURE = "bath_temperature"
 CONF_BATH_TEMPERATURE_DEFAULT = "bath_temperature_default"
-CONF_DELAY_FINDER = "delay_finder"
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -36,7 +35,7 @@ CONFIG_SCHEMA = cv.Schema(
             icon=ICON_TIMER,
         ).extend(
             {
-                cv.Optional(CONF_BATH_TIME_DEFAULT): cv.float_range(min=5, max=360),
+                cv.Optional(CONF_BATH_TIME_DEFAULT): cv.float_range(min=1, max=360),
             }
         ),
         cv.Optional(CONF_BATH_TEMPERATURE): number.number_schema(
@@ -57,7 +56,7 @@ async def to_code(config):
     sauna360_component = await cg.get_variable(config[CONF_SAUNA360_ID])
     if bath_time := config.get(CONF_BATH_TIME):
       n = await number.new_number(
-        bath_time, min_value=5, max_value=360, step=5,
+        bath_time, min_value=5, max_value=360, step=1,
       )
       await cg.register_parented(n, sauna360_component)
       cg.add(sauna360_component.set_bath_time_number(n))
@@ -65,7 +64,7 @@ async def to_code(config):
         cg.add(sauna360_component.set_bath_time_default_value(bath_time[CONF_BATH_TIME_DEFAULT]))
     if bath_temperature := config.get(CONF_BATH_TEMPERATURE):
       n = await number.new_number(
-        bath_temperature, min_value=40, max_value=110, step=5,
+        bath_temperature, min_value=40, max_value=110, step=1,
       )
       await cg.register_parented(n, sauna360_component)
       cg.add(sauna360_component.set_bath_temperature_number(n))

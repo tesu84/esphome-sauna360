@@ -1,40 +1,38 @@
 
 # ESPHome Sauna360
 
-ESPHome rs485 gateway component for brands of Sauna360 electrical sauna heaters.  
+[ESPHome](https://esphome.io/) rs485 gateway component for brands of Sauna360 electrical sauna heaters.  
 
-ESPHome is a system to control your microcontrollers by simple yet powerful configuration files and control them remotely through Home Automation systems like Home assistant and openHAB.  
+[ESPHome](https://esphome.io/) is a system to control your microcontrollers by simple yet powerful configuration files and control them remotely through Home Automation systems like [Home Assistant](https://www.home-assistant.io/) and [openHAB](https://www.openhab.org/).  
 
-Brands, Sauna360, Helo, Tylö, TyloHelo, finnleo, amerec  
+Brands, Sauna360, Helo, Tylö, TyloHelo, finnleo, amerec.  
 
 which use Adapter circuit board OLEA 103 and PURE/ELITE control panels.  
 ![Screenshot 2024-10-05 170232](https://github.com/user-attachments/assets/ef990b1d-3291-422f-9d9e-5d07e3631fae)
-
 
 Known models which have OLEA 103:  
 Himalaya Elite, Roxx Elite, helo Steam, Helo Steam Pro, Rocher Elite, Contactor box WE30, WE40, WE 50, WE 53, WE 52.  
 With contactor box you can make your traditional sauna heater to work with PURE/ELITE control panels.
 
-
 Tested with:  
 Helo Roxx, Contactor box WE30, with ELITE and PURE 2.0 panels  
-Hardware used:
+Hardware tested:  
 ATOM Lite + tail485  
-atom s3 lite + Max485  
+ATOM S3 Lite + tail485  
+ATOM S3 Lite + Max485 Module with ~RE/DE flow control pin  
 
-.. note::
+## Connecting your device
 
-    RS485
-    Automatic flow control transievers like tail485 wont work on sending data, but you can read data.
-    Trancievers with flow control pins ~RE/DE like MAX485 can be used for sending data also.
+> [!CAUTION]
+> Max output power of 12VDC line is not known so connect devices at your OWN RISK!  
 
-.. warning::
+### Between panel and heater  
+Cable (4 x 0,15 mm²) / (LIYY (TP) 2 x 2 x 0,14mm²)  
+![wiring](wiring-1.png)  
 
-    Max output power of 12VDC line is not known so connect devices at your OWN RISK!  
+> [!WARNING]
+> Colors may vary, so measuring voltage is advised. Turn heater of when making a connection.  
 
-Connect your device directly between panel cable (4 x 0,15 mm² on manual and actual LIYY (TP) 2 x 2 x 0,14)
-![Screenshot 2024-10-05 170711](https://github.com/user-attachments/assets/668430a8-a657-47a2-b79a-1f6c7468b21d)  
-(Colors may vary, so measuring voltage is advised)  
 |PIN|DESIGNATION|COLOR|
 |--|--|--|
 |1|A|YELLOW|
@@ -42,14 +40,20 @@ Connect your device directly between panel cable (4 x 0,15 mm² on manual and ac
 |3|12VDC|WHITE|
 |4|GND|GREEN|
 
-Or you can connect cable directly to free control panel RJ10 plug and your device.
+> [!IMPORTANT]
+> If using automatic tranciever like tail485 and pure panel. An additional resistor of 220Ω is needed between A and B lines in order to make sending to work.
+
+### Directly to heater OLEA 103
+
 ![Screenshot 2024-10-05 170649](https://github.com/user-attachments/assets/1033c7dd-9285-4b00-a9e4-8e67a3d91566)  
  
 If errors in communications or long wire use twisted pair cable like LIYY (TP) 2 x 2 x 0,14   
 
 Cable pinout, telephone jack RJ10:  
 ![rj10pins](https://github.com/user-attachments/assets/e0e3bc6f-94d8-4074-9381-20c301f4cd1e)  
-Cable pinout for common telephone cables (Colors may vary, so measuring voltage is advised)  
+> [!WARNING]
+> Cable pinout for common telephone cables. Colors may vary, so measuring voltage is advised.  
+
 |PIN|DESIGNATION|COLOR|
 |--|--|--|
 |1|A|YELLOW OR BLACK|
@@ -57,22 +61,95 @@ Cable pinout for common telephone cables (Colors may vary, so measuring voltage 
 |3|12VDC|RED OR GREEN|
 |4|GND|BLACK OR YELLOW|
 
+> [!TIP]
+> It is recommended to put ESPhome Wifi device outside of sauna. Typically there is foil behind woodpanels so wifi reception might be poor in saunaroom and devices probably don't like to heat up.  
 
-.. note::
+## Configuration  
 
-    It is recommended to put ESPhome Wifi device outside of sauna. Typically there is foil behind woodpanels so wifi reception might be poor in saunaroom and devices probably don't like to heat up.
-
-Example configuration helo.yaml
+### Example minimal configuration.
 ```
+uart:
+    # change right pins for your ESPhome device
+    rx_pin: GPIO1
+    tx_pin: GPIO2
+    baud_rate: 19200
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 1
+
+sauna360:
+  #flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
+
+binary_sensor:
+- platform: sauna360
+  heater_status:
+    name: "Heater Status"
+- platform: sauna360
+  light_status:
+    name: "Light Status"
+- platform: sauna360
+  ready_status: 
+    name: "Ready Status"
+
+sensor:
+- platform: wifi_signal
+  name: "${device_name} WiFi Signal"
+  update_interval: 60s
+- platform: sauna360
+  current_temperature:
+    name: "Current Temperature"
+- platform: sauna360
+  setting_temperature:
+    name: "Setting Temperature"
+- platform: sauna360
+  remaining_time:
+    name: "Remaining time"
+- platform: sauna360
+  setting_bath_time:
+    name: "Setting Bath Time"
+- platform: sauna360
+  humidity_setting: #combi/steam models
+    name: "Setting Humidity"
+- platform: sauna360
+  humidity_percentage: #combi/steam models
+    name: "Humidity"
+
+button:
+- platform: sauna360
+  heater_on:
+    name: "On"
+- platform: sauna360
+  heater_off:
+    name: "Off "
+- platform: sauna360
+  heater_standby: #use only if elite panel and stanby setting is on from panel.
+    name: "Standby"
+- platform: sauna360
+  heater_power_toggle:
+    name: "Power Toggle"
+
+number:
+- platform: sauna360
+  bath_time:
+    name: "Bath Time"
+    mode: box # box / slider
+    bath_time_default: 90 #1-360min
+- platform: sauna360
+  bath_temperature:
+    name: "Bath Temperature"
+    mode: box # box / slider
+    bath_temperature_default: 65 #40-110°C
+```
+
+### Example full configuration with m5stack ATOMS3 Lite + tail485
+```
+#example configuration
+
 substitutions:
   device_name: helo
 
 external_components:
-  - source:
-      type: git
-      url: https://github.com/tesu84/esphome-sauna360/
-      ref: feature/project-template
-    components: [ sauna360 ]
+  - source: esphome/components
 
 esphome:
   name: ${device_name}
@@ -122,15 +199,15 @@ wifi:
 
 uart:
     # change right pins for your ESPhome device
-    rx_pin: GPIO5
-    tx_pin: GPIO6
+    rx_pin: GPIO1
+    tx_pin: GPIO2
     baud_rate: 19200
     data_bits: 8
     parity: EVEN
     stop_bits: 1
 
 sauna360:
-  flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
+  #flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
 
 binary_sensor:
 - platform: sauna360
@@ -157,6 +234,9 @@ sensor:
   remaining_time:
     name: "Remaining time"
 - platform: sauna360
+  setting_bath_time:
+    name: "Setting Bath Time"
+- platform: sauna360
   humidity_setting: #combi/steam models
     name: "Setting Humidity"
 - platform: sauna360
@@ -177,23 +257,20 @@ button:
   heater_power_toggle:
     name: "Power Toggle"
 
-- platform: restart
-  name: "ESPHome Device Restart"
-
 number:
 - platform: sauna360
   bath_time:
     name: "Bath Time"
     mode: box # box / slider
-    bath_time_default: 90 #5-360min
+    bath_time_default: 90 #1-360min
 - platform: sauna360
   bath_temperature:
     name: "Bath Temperature"
     mode: box # box / slider
     bath_temperature_default: 65 #40-110°C
-```
 
-Place your !secrets to secrets.yaml
+```
+### Place your !secrets to secrets.yaml
 ```
 wifi_ssid: "SSID"
 wifi_password: "PASSWORD"

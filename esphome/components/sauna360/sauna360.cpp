@@ -35,7 +35,7 @@ void SAUNA360Component::loop() {
   }
 
   if ( (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 250)){
-  send_data_();
+    send_data_();
   }
 
 }
@@ -47,12 +47,12 @@ void SAUNA360Component::handle_char_(uint8_t c) {
   }
 
   if (c == 0x98 && this->frame_flag_ == true){
-    this->frame_flag_ = true;
     this->rx_message_.clear();
   }
 
   if (c == 0x9C) {
 
+    this->rx_message_.push_back(c);
     std::vector<uint8_t> frame(this->rx_message_.begin(), this->rx_message_.end());
 
     if ((frame[4] != 0xE3) && (frame[4] != 0x3A )) {
@@ -82,8 +82,8 @@ void SAUNA360Component::handle_char_(uint8_t c) {
       }
       
       //reserve bus for sending
-      for (int i = 1; i < 40; i++) {
-        write_byte(0x00);
+      for (int i = 0; i < 40; i++) {
+        this->write_byte(0x00);
       }
 
       this->write_array(packet);
@@ -95,7 +95,7 @@ void SAUNA360Component::handle_char_(uint8_t c) {
         ESP_LOGCONFIG(TAG, "FLOW CONTROL OFF"); 
       }
     }
-    ESP_LOGCONFIG(TAG, "DATA SENT SUCCESFULLY %zuus", micros()-last_tx_);
+    ESP_LOGCONFIG(TAG, "DATA SENT SUCCESFULLY");
   }
 
 void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
@@ -126,16 +126,22 @@ void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
     }
     packet.push_back(d);
   }
+  
+  uint16_t crc = packet[packet.size() - 1];
+  crc |= (packet[packet.size() - 2]) << 8;
+  packet.pop_back();
+  packet.pop_back();
+  uint16_t crc_calculated = crc16be(packet.data(), packet.size(), 0xffff, 0x90d9, false, false);
+  if (crc == crc_calculated){
+    this->handle_packet_(packet);
+  }
 
-   if (crc16be(packet.data(), packet.size(), 0xffff, 0x90d9, false, false)){
-     packet.pop_back();
-     this->handle_packet_(packet);
-   }
+  else {
+    ESP_LOGCONFIG(TAG, "%s CRC ERROR", format_hex_pretty(packet).c_str());
+  }
 
-   else {
-    ESP_LOGCONFIG(TAG, "%s CRC ERROR", format_hex_pretty(frame).c_str());
-   }
-   frame.clear();
+  frame.clear();
+
 }
 
 void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
@@ -226,6 +232,10 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
 
   else if (code == 0x4200){
     //  probably clock
+  }
+
+  else if (code == 0x7000){
+    //  command acknowledge
   }
 
   else if (code == 0x6001) {
