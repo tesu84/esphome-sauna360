@@ -61,7 +61,6 @@ void SAUNA360Component::handle_char_(uint8_t c) {
 }
 
 void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
-  ESP_LOGCONFIG(TAG, "%s DEBUG WITH ESCAPE", format_hex_pretty(frame).c_str());
   std::vector<uint8_t> packet;
   bool is_escaped = false;
   for (int i = 1; i < frame.size()-1; i++) {
@@ -88,7 +87,6 @@ void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
     }
     packet.push_back(d);
   }
-  ESP_LOGCONFIG(TAG, "%s DEBUG AFTER ESCAPE", format_hex_pretty(packet).c_str());
   uint16_t crc = packet[packet.size() - 1];
   crc |= (packet[packet.size() - 2]) << 8;
   packet.pop_back();
@@ -118,8 +116,10 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     // State bits 31..0
     for (auto &listener : listeners_) {listener->on_light_status((data >> 3) & 1);}
     for (auto &listener : listeners_) {listener->on_heater_status((data >> 4) & 1);}
-    for (auto &listener : listeners_) {listener->on_ready_status((data >> 4) & 1);}
-    // set ready_status true here also if heater is ready after boot so it gets value faster.
+    if ((data >> 4) & 1){
+      for (auto &listener : listeners_) {listener->on_ready_status(true);}
+      // set ready_status true here also if heater is ready after boot so it gets value faster.
+    }
   }
   else if (code == 0x4002){
     int value = (data & 0xFFF);
