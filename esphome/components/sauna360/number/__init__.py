@@ -5,7 +5,6 @@ from esphome.const import (
     UNIT_MINUTE,
     UNIT_CELSIUS,
     ICON_TIMER,
-    ENTITY_CATEGORY_CONFIG,
     DEVICE_CLASS_DURATION,
     DEVICE_CLASS_TEMPERATURE,
     ICON_THERMOMETER,
@@ -31,7 +30,6 @@ CONFIG_SCHEMA = cv.Schema(
             SAUNA360BathTimeNumber,
             device_class=DEVICE_CLASS_DURATION,
             unit_of_measurement=UNIT_MINUTE,
-            entity_category=ENTITY_CATEGORY_CONFIG,
             icon=ICON_TIMER,
         ).extend(
             {
@@ -42,7 +40,6 @@ CONFIG_SCHEMA = cv.Schema(
             SAUNA360BathTemperatureNumber,
             device_class=DEVICE_CLASS_TEMPERATURE,
             unit_of_measurement=UNIT_CELSIUS,
-            entity_category=ENTITY_CATEGORY_CONFIG,
             icon=ICON_THERMOMETER,
         ).extend(
             {

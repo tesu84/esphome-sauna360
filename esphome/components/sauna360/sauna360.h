@@ -15,6 +15,9 @@
 #ifdef USE_BUTTON
 #include "esphome/components/button/button.h"
 #endif
+#ifdef USE_SWITCH
+#include "esphome/components/switch/switch.h"
+#endif
 
 #include <queue>
 #include <map>
@@ -34,14 +37,21 @@ class SAUNA360Listener {
    virtual void on_heater_status(bool heater_status){};
    virtual void on_light_status(bool light_status){};
    virtual void on_ready_status(bool ready_status){};
+   virtual void on_light_relay_status(bool light_status){};
 };
 
 class SAUNA360Component : public uart::UARTDevice, public Component {
 
-   #ifdef USE_NUMBER
+  #ifdef USE_NUMBER
     SUB_NUMBER(bath_time)
     SUB_NUMBER(bath_temperature)
-   #endif
+  #endif
+  #ifdef USE_SWITCH
+    SUB_SWITCH(light_relay)
+    SUB_SWITCH(aux0_relay)
+    SUB_SWITCH(aux1_relay)
+    SUB_SWITCH(aux2_relay)
+  #endif
 
   public:
     void setup() override;
@@ -67,6 +77,10 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_bath_temperature_number(float value);
     void set_bath_temperature_default_value(float bath_temperature_default) { bath_temperature_default_ = bath_temperature_default; }
     void set_flow_control_pin(GPIOPin *flow_control_pin) { this->flow_control_pin_ = flow_control_pin; }
+    void set_light_relay(bool enable);
+    void set_aux0_relay(bool enable);
+    void set_aux1_relay(bool enable);
+    void set_aux2_relay(bool enable);
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};
@@ -82,7 +96,6 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     uint32_t last_tx_;
     uint32_t temperature_received_hex_;
     std::vector<SAUNA360Listener *> listeners_{};
-
     float bath_time_default_{NAN};
     float bath_temperature_default_{NAN};
 

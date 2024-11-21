@@ -19,10 +19,10 @@ void SAUNA360Component::setup() {
     this->flow_control_pin_->setup();
   }
   if (!std::isnan(this->bath_time_default_)) {
-    this->bath_time_number_->publish_state(bath_time_default_);
+    this->set_bath_time_number(bath_time_default_);
   }
   if (!std::isnan(this->bath_temperature_default_)) {
-    this->bath_temperature_number_->publish_state(bath_temperature_default_);
+    this->set_bath_temperature_number(bath_temperature_default_);
   }
 }
 
@@ -115,6 +115,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   if (code == 0x3400){
     // State bits 31..0
     for (auto &listener : listeners_) {listener->on_light_status((data >> 3) & 1);}
+    this->light_relay_switch_->publish_state((data >> 3) & 1);
     for (auto &listener : listeners_) {listener->on_heater_status((data >> 4) & 1);}
     if ((data >> 4) & 1){
       for (auto &listener : listeners_) {listener->on_ready_status(true);}
@@ -129,6 +130,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     else if ((value >= 256) && (value < 316)) {value-=16;}
     else if (value >= 230) {value-=20;}
     for (auto &listener : listeners_) {listener->on_bath_time_setting(value);}
+    this->bath_time_number_->publish_state(value);
     //max bath temp 40-110
     //100 70.8B.40.5A
     //101 71.AB.40.5A
@@ -202,6 +204,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_temperature(actual_temp);}
     int setpoint_temp = ((data >> 11) & 0x00007FF) / 9.0;
     for (auto &listener : listeners_) {listener->on_temperature_setting(setpoint_temp);}
+    this->bath_temperature_number_->publish_state(setpoint_temp);
     //Standby temp reduction 0-30
     //0 00.0B.40.E1
     //1 02.4B.40.E1
@@ -220,8 +223,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0x7000){
     //command acknowledge
-    //ght toggle
-    //de 7000 
+    //light toggle
     //data 00000002
   }
   else if (code == 0x7180) {
@@ -234,6 +236,10 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //ESP_LOGCONFIG(TAG, "Relay 6 X13-X14 %d", ((data >> 5) & 1));
     //ESP_LOGCONFIG(TAG, "Relay 7 X15-X16 %d", ((data >> 6) & 1));
     //ESP_LOGCONFIG(TAG, "Relay 8 X17-X18 %d", ((data >> 7) & 1));
+    this->light_relay_switch_->publish_state((data >> 5) & 1);
+    this->aux0_relay_switch_->publish_state((data >> 6) & 1);
+    this->aux1_relay_switch_->publish_state((data >> 4) & 1);
+    this->aux2_relay_switch_->publish_state((data >> 3) & 1);
   }
   else if (code == 0x7280){
     //Water level
@@ -306,6 +312,25 @@ void SAUNA360Component::set_bath_temperature_number(float value) {
   uint32_t data = (((uint32_t) value * 9 ) << 11);
   data |= this->temperature_received_hex_;
   this->create_send_data_(0x07, 0x6000, data);
+}
+
+void SAUNA360Component::set_light_relay(bool enable) {
+  this->create_send_data_(0x07, 0x7000, 0x2);
+}
+
+void SAUNA360Component::set_aux0_relay(bool enable) {
+  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
+  this->create_send_data_(0x07, 0x5200, data);
+}
+
+void SAUNA360Component::set_aux1_relay(bool enable) {
+  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
+  this->create_send_data_(0x07, 0x5201, data);
+}
+
+void SAUNA360Component::set_aux2_relay(bool enable) {
+  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
+  this->create_send_data_(0x07, 0x5202, data);
 }
 
 void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t data) {

@@ -123,3 +123,17 @@ number:
     name: "Bath Temperature"
     mode: box # box / slider
     bath_temperature_default: 65 #40-110°C
+
+switch:
+- platform: sauna360
+  light_relay:
+    name: "Light"
+- platform: sauna360
+  aux0_relay:
+    name: "Aux 0 (FAN)" #FAN
+- platform: sauna360
+  aux1_relay:
+    name: "Aux 1"
+- platform: sauna360
+  aux2_relay:
+    name: "Aux 2"

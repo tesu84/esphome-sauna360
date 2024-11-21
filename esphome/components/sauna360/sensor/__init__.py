@@ -79,15 +79,14 @@ async def to_code(config):
     if CONF_REMAINING_TIME in config:
       sens = await sensor.new_sensor(config[CONF_REMAINING_TIME])
       cg.add(var.set_remaining_time_sensor(sens))
-    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     if CONF_HUMIDITY_SETTING in config:
       sens = await sensor.new_sensor(config[CONF_HUMIDITY_SETTING])
       cg.add(var.set_humidity_sensor(sens))
     if CONF_HUMIDITY_PERCENTAGE in config:
       sens = await sensor.new_sensor(config[CONF_HUMIDITY_PERCENTAGE])
       cg.add(var.set_humidity_percentage_sensor(sens))
-    cg.add(sauna360.register_listener(var))
     if CONF_SETTING_BATH_TIME in config:
       sens = await sensor.new_sensor(config[CONF_SETTING_BATH_TIME])
       cg.add(var.set_bath_time_setting_sensor(sens))
+    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     cg.add(sauna360.register_listener(var))
