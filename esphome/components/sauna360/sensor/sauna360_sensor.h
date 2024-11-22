@@ -57,6 +57,14 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
       }
     }
   }
+  void set_total_uptime_sensor(sensor::Sensor *sensor) { this->total_uptime_sensor_ = sensor; }
+  void on_total_uptime(uint16_t total_uptime) override {
+    if (this->total_uptime_sensor_ != nullptr) {
+      if (this->total_uptime_sensor_->get_state() != total_uptime) {
+        this->total_uptime_sensor_->publish_state(total_uptime);
+      }
+    }
+  }
  protected:
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *temperature_setting_sensor_{nullptr};
@@ -64,6 +72,7 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
   sensor::Sensor *humidity_sensor_{nullptr};
   sensor::Sensor *humidity_percentage_sensor_{nullptr};
   sensor::Sensor *bath_time_setting_sensor_{nullptr};
+  sensor::Sensor *total_uptime_sensor_{nullptr};
 };
 
 }  // namespace sauna360

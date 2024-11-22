@@ -228,14 +228,14 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0x7180) {
     //State bits 31..00
-    //ESP_LOGCONFIG(TAG, "Relay 1 X3-X4 %d", ((data >> 0) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 2 X5-X6 %d", ((data >> 1) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 3 X7-X8 %d", ((data >> 2) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 4 X9-X10 %d", ((data >> 3) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 5 X11-X12 %d", ((data >> 4) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 6 X13-X14 %d", ((data >> 5) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 7 X15-X16 %d", ((data >> 6) & 1));
-    //ESP_LOGCONFIG(TAG, "Relay 8 X17-X18 %d", ((data >> 7) & 1));
+    for (auto &listener : listeners_) {listener->on_relay_x3_x4_status((data >> 0) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x5_x6_status((data >> 1) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x7_x8_status((data >> 2) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x9_x10_status((data >> 3) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x11_x12_status((data >> 4) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x13_x14_status((data >> 5) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x15_x16_status((data >> 6) & 1);}
+    for (auto &listener : listeners_) {listener->on_relay_x17_x18_status((data >> 7) & 1);}
     this->light_relay_switch_->publish_state((data >> 5) & 1);
     this->aux0_relay_switch_->publish_state((data >> 6) & 1);
     this->aux1_relay_switch_->publish_state((data >> 4) & 1);
@@ -259,7 +259,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //Disabled from 23:59 until 23:59  00.2F.DD.FB
   }
   else if (code == 0x9400){
-    //total operation time minute upcounter.
+    for (auto &listener : listeners_) {listener->on_total_uptime(data);}
   }
   else if (code == 0x9401){
     for (auto &listener : listeners_) {listener->on_remaining_time(data);}

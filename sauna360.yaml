@@ -74,6 +74,30 @@ binary_sensor:
 - platform: sauna360
   ready_status: 
     name: "Ready Status"
+- platform: sauna360
+  relay_x3_x4_status: 
+    name: "Relay X3-X4 Status"
+- platform: sauna360
+  relay_x5_x6_status: 
+    name: "Relay X5-X6 Status"
+- platform: sauna360
+  relay_x7_x8_status: 
+    name: "Relay X7-X8 Status"
+- platform: sauna360
+  relay_x9_x10_status: 
+    name: "Relay X9-X10 Status"
+- platform: sauna360
+  relay_x11_x12_status: 
+    name: "Relay X11-X12 Status"
+- platform: sauna360
+  relay_x13_x14_status: 
+    name: "Relay X13-X14 Status"
+- platform: sauna360
+  relay_x15_x16_status: 
+    name: "Relay X15-X16 Status"
+- platform: sauna360
+  relay_x17_x18_status: 
+    name: "Relay X17-X18 Status"
 
 sensor:
 - platform: wifi_signal
@@ -97,6 +121,9 @@ sensor:
 - platform: sauna360
   humidity_percentage: #combi/steam models
     name: "Humidity"
+- platform: sauna360
+  total_uptime:
+    name: "Total Uptime"
 
 button:
 - platform: sauna360

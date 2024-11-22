@@ -24,6 +24,7 @@ CONF_REMAINING_TIME = "remaining_time"
 CONF_HUMIDITY_SETTING = "humidity_setting"
 CONF_HUMIDITY_PERCENTAGE = "humidity_percentage"
 CONF_SETTING_BATH_TIME = "setting_bath_time"
+CONF_TOTAL_UPTIME = "total_uptime"
 
 CONFIG_SCHEMA = cv.All(
     cv.COMPONENT_SCHEMA.extend(
@@ -63,6 +64,11 @@ CONFIG_SCHEMA = cv.All(
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
             ),
+          cv.Optional(CONF_TOTAL_UPTIME): sensor.sensor_schema(
+            unit_of_measurement=UNIT_MINUTE,
+            device_class=DEVICE_CLASS_DURATION,
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
         }
     ),
 )
@@ -88,5 +94,8 @@ async def to_code(config):
     if CONF_SETTING_BATH_TIME in config:
       sens = await sensor.new_sensor(config[CONF_SETTING_BATH_TIME])
       cg.add(var.set_bath_time_setting_sensor(sens))
+    if CONF_TOTAL_UPTIME in config:
+      sens = await sensor.new_sensor(config[CONF_TOTAL_UPTIME])
+      cg.add(var.set_total_uptime_sensor(sens))
     sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     cg.add(sauna360.register_listener(var))

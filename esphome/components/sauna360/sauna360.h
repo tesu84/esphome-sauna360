@@ -34,10 +34,18 @@ class SAUNA360Listener {
    virtual void on_humidity(uint16_t humidity){};
    virtual void on_humidity_percentage(uint16_t humidity_percentage){};
    virtual void on_bath_time_setting (uint16_t bath_time_setting){};
+   virtual void on_total_uptime (uint16_t bath_time_setting){};
    virtual void on_heater_status(bool heater_status){};
    virtual void on_light_status(bool light_status){};
    virtual void on_ready_status(bool ready_status){};
-   virtual void on_light_relay_status(bool light_status){};
+   virtual void on_relay_x3_x4_status(bool relay_x3_x4_status){};
+   virtual void on_relay_x5_x6_status(bool relay_x5_x6_status){};
+   virtual void on_relay_x7_x8_status(bool relay_x7_x8_status){};
+   virtual void on_relay_x9_x10_status(bool relay_x9_x10_status){};
+   virtual void on_relay_x11_x12_status(bool relay_x11_x12_status){};
+   virtual void on_relay_x13_x14_status(bool relay_x13_x14_status){};
+   virtual void on_relay_x15_x16_status(bool relay_x15_x16_status){};
+   virtual void on_relay_x17_x18_status(bool relay_x17_x18_status){};
 };
 
 class SAUNA360Component : public uart::UARTDevice, public Component {
