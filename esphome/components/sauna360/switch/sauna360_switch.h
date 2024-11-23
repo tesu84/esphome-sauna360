@@ -35,5 +35,13 @@ class SAUNA360Aux2RelaySwitch : public switch_::Switch, public Parented<SAUNA360
   void write_state(bool state) override;
 };
 
+class SAUNA360StandbyEnableSwitch : public switch_::Switch, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360StandbyEnableSwitch() = default;
+
+ protected:
+  void write_state(bool state) override;
+};
+
 }  // namespace sauna360
 }  // namespace esphome

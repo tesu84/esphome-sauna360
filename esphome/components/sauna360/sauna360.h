@@ -35,6 +35,9 @@ class SAUNA360Listener {
    virtual void on_humidity_percentage(uint16_t humidity_percentage){};
    virtual void on_bath_time_setting (uint16_t bath_time_setting){};
    virtual void on_total_uptime (uint16_t bath_time_setting){};
+   virtual void on_max_bath_temperature (uint16_t max_bath_temperature){};
+   virtual void on_overheating_pcb_limit (uint16_t overheating_pcb_limit){};
+   virtual void on_standby_temperature_reduction (uint16_t standby_temp_reduction){};
    virtual void on_heater_status(bool heater_status){};
    virtual void on_light_status(bool light_status){};
    virtual void on_ready_status(bool ready_status){};
@@ -59,6 +62,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     SUB_SWITCH(aux0_relay)
     SUB_SWITCH(aux1_relay)
     SUB_SWITCH(aux2_relay)
+    SUB_SWITCH(standby_enable)
   #endif
 
   public:
@@ -89,6 +93,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_aux0_relay(bool enable);
     void set_aux1_relay(bool enable);
     void set_aux2_relay(bool enable);
+    void set_standby_enable(bool enable);
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};

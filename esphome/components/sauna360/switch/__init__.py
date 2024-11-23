@@ -16,11 +16,13 @@ SAUNA360LightRelaySwitch = sauna360_ns.class_("SAUNA360LightRelaySwitch", switch
 SAUNA360Aux0RelaySwitch = sauna360_ns.class_("SAUNA360Aux0RelaySwitch", switch.Switch, cg.Component)
 SAUNA360Aux1RelaySwitch = sauna360_ns.class_("SAUNA360Aux1RelaySwitch", switch.Switch, cg.Component)
 SAUNA360Aux2RelaySwitch = sauna360_ns.class_("SAUNA360Aux2RelaySwitch", switch.Switch, cg.Component)
+SAUNA360StandbyEnableSwitch = sauna360_ns.class_("SAUNA360StandbyEnableSwitch", switch.Switch, cg.Component)
 
 CONF_LIGHT_RELAY = "light_relay"
 CONF_AUX0_RELAY = "aux0_relay"
 CONF_AUX1_RELAY = "aux1_relay"
 CONF_AUX2_RELAY = "aux2_relay"
+CONF_STANBY_ENABLE = "standby_enable"
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_SAUNA360_ID): cv.use_id(SAUNA360Component),
@@ -39,6 +41,10 @@ CONFIG_SCHEMA = {
     ),
     cv.Optional(CONF_AUX2_RELAY): switch.switch_schema(
         SAUNA360Aux2RelaySwitch,
+        device_class=DEVICE_CLASS_SWITCH,
+    ),
+    cv.Optional(CONF_STANBY_ENABLE): switch.switch_schema(
+        SAUNA360StandbyEnableSwitch,
         device_class=DEVICE_CLASS_SWITCH,
     ),
 }
@@ -61,3 +67,7 @@ async def to_code(config):
         s = await switch.new_switch(aux2_relay)
         await cg.register_parented(s, config[CONF_SAUNA360_ID])
         cg.add(sauna360_component.set_aux2_relay_switch(s))
+    if standby_enable := config.get(CONF_STANBY_ENABLE):
+        s = await switch.new_switch(standby_enable)
+        await cg.register_parented(s, config[CONF_SAUNA360_ID])
+        cg.add(sauna360_component.set_standby_enable_switch(s))

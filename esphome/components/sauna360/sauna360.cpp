@@ -131,28 +131,19 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     else if (value >= 230) {value-=20;}
     for (auto &listener : listeners_) {listener->on_bath_time_setting(value);}
     this->bath_time_number_->publish_state(value);
-    //max bath temp 40-110
-    //100 70.8B.40.5A
-    //101 71.AB.40.5A
-    //102 72.CB.40.5A
-    //103 73.EB.40.5A
-    //104 75.0B.40.5A
+    int max_bath_temperature = ((data >> 20) & 0x00FFFFF) / 18;
+    for (auto &listener : listeners_) {listener->on_max_bath_temperature(max_bath_temperature);}
   }
   else if (code == 0x4003){
+    int overheating_pcb_limit = ((data >> 11) & 0x00007FF) / 18;
+    for (auto &listener : listeners_) {listener->on_overheating_pcb_limit(overheating_pcb_limit);}
     //Overheating PCB limit 70-90 default 80
-    //81 06.2D.93.DE
-    //82 06.2E.23.DE
-    //83 06.2E.B3.DE
-    //
     //External switch function
     //Renew Bathtime 06.AE.B3.DE overheat was 83
     //On/Off         06.2E.B3.DE overheat was 83
   }
   else if (code == 0x4004){
-    //Standby
-    //disable 00.00.00.1E
-    //enable  00.00.10.1E
-    //
+    this->standby_enable_switch_->publish_state((data >> 12) & 1);
     //External switch 
     //Bath time 1-360min
     //code 4004
@@ -198,33 +189,24 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //Off C0.00.A4.B0
   }
   else if (code == 0x6000){
-    // temperature data point. Split into set point and actual value
     int actual_temp = (data & 0x00007FF) / 9.0;
     this->temperature_received_hex_ = (data & 0x00007FF);
     for (auto &listener : listeners_) {listener->on_temperature(actual_temp);}
     int setpoint_temp = ((data >> 11) & 0x00007FF) / 9.0;
     for (auto &listener : listeners_) {listener->on_temperature_setting(setpoint_temp);}
     this->bath_temperature_number_->publish_state(setpoint_temp);
-    //Standby temp reduction 0-30
-    //0 00.0B.40.E1
-    //1 02.4B.40.E1
-    //2 04.8B.40.E1
-    //3 06.CB.40.E1
+    int standby_temperature_reduction = ((data >> 21) & 0x007FFFF) / 18;
+    for (auto &listener : listeners_) {listener->on_standby_temperature_reduction(standby_temperature_reduction);}
+    // Standby temp reduction 0-30
   }
   else if (code == 0x6001) {
-    // Extract the second byte and the lower nibble of the third byte
-    uint8_t second_byte = (data & 0xFF00) >> 8;
-    uint8_t third_byte_lower_nibble = (data & 0x00F0) >> 4;
-    // Calculate the humidity setting based on the pattern and adjust by subtracting 5
-    uint16_t humidity_setting = (second_byte - 0x30) * 2 + (third_byte_lower_nibble / 8) - 5;
-    ESP_LOGCONFIG(TAG, "Humidity setting: %d", humidity_setting);
+    int humidity_setting = (((data >> 4) & 0x00000FF) - 40) / 8;
     for (auto &listener : listeners_) {listener->on_humidity(humidity_setting);}
     //for (auto &listener : listeners_) {listener->on_humidity_percentage(humidity_percentage);}
+    //humidity percentage might also be in this code? cant really test until have combi elite Rh% sensor. 
   }
   else if (code == 0x7000){
     //command acknowledge
-    //light toggle
-    //data 00000002
   }
   else if (code == 0x7180) {
     //State bits 31..00
@@ -246,6 +228,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //CODE 7280 DATA 0x00000000 LOW
     //CODE 7280 DATA 0x00000800 MID
     //CODE 7280 DATA 0x00001000 HIGH
+    //NEED TO TEST WITH WATER MORE, PINS GND H M
   }
   else if (code == 0x9000){
     //Not allowed start 00:00 - 23:59 (1440min)
@@ -331,6 +314,14 @@ void SAUNA360Component::set_aux1_relay(bool enable) {
 void SAUNA360Component::set_aux2_relay(bool enable) {
   uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
   this->create_send_data_(0x07, 0x5202, data);
+}
+
+void SAUNA360Component::set_standby_enable(bool enable) {
+    //Standby
+    //disable 00.00.00.1E
+    //enable  00.00.10.1E
+  uint32_t data = (enable) ? 0x0000101E : 0xC0000001E;
+  this->create_send_data_(0x07, 0x4004, data);
 }
 
 void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t data) {

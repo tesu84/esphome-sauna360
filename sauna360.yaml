@@ -124,6 +124,15 @@ sensor:
 - platform: sauna360
   total_uptime:
     name: "Total Uptime"
+- platform: sauna360
+  max_bath_temperature:
+    name: "Max Bath Temperature"
+- platform: sauna360
+  overheating_pcb_limit:
+    name: "Overheating PCB Limit"
+- platform: sauna360
+  standby_temperature_reduction:
+    name: "Standby Temperature Reduction"
 
 button:
 - platform: sauna360
@@ -164,3 +173,6 @@ switch:
 - platform: sauna360
   aux2_relay:
     name: "Aux 2"
+- platform: sauna360
+  standby_enable:
+    name: "Standby Enable"

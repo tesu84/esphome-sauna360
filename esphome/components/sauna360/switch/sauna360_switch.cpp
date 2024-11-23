@@ -23,5 +23,10 @@ void SAUNA360Aux2RelaySwitch::write_state(bool state) {
     this->parent_->set_aux2_relay(state);
   }
 
+void SAUNA360StandbyEnableSwitch::write_state(bool state) {
+    this->publish_state(state);
+    this->parent_->set_standby_enable(state);
+  }
+
 }  // namespace sauna360
 }  // namespace esphome

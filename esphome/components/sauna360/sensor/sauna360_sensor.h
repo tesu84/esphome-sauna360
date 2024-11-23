@@ -65,6 +65,30 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
       }
     }
   }
+  void set_max_bath_temperature_sensor(sensor::Sensor *sensor) { this->max_bath_temperature_sensor_ = sensor; }
+  void on_max_bath_temperature(uint16_t max_bath_temperature) override {
+    if (this->max_bath_temperature_sensor_ != nullptr) {
+      if (this->max_bath_temperature_sensor_->get_state() != max_bath_temperature) {
+        this->max_bath_temperature_sensor_->publish_state(max_bath_temperature);
+      }
+    }
+  }
+  void set_overheating_pcb_limit_sensor(sensor::Sensor *sensor) { this->overheating_pcb_limit_sensor_ = sensor; }
+  void on_overheating_pcb_limit(uint16_t overheating_pcb_limit) override {
+    if (this->overheating_pcb_limit_sensor_ != nullptr) {
+      if (this->overheating_pcb_limit_sensor_->get_state() != overheating_pcb_limit) {
+        this->overheating_pcb_limit_sensor_->publish_state(overheating_pcb_limit);
+      }
+    }
+  }
+  void set_standby_temperature_reduction_sensor(sensor::Sensor *sensor) { this->standby_temperature_reduction_sensor_ = sensor; }
+  void on_standby_temperature_reduction(uint16_t standby_temperature_reduction) override {
+    if (this->standby_temperature_reduction_sensor_ != nullptr) {
+      if (this->standby_temperature_reduction_sensor_->get_state() != standby_temperature_reduction) {
+        this->standby_temperature_reduction_sensor_->publish_state(standby_temperature_reduction);
+      }
+    }
+  }
  protected:
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *temperature_setting_sensor_{nullptr};
@@ -73,6 +97,9 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
   sensor::Sensor *humidity_percentage_sensor_{nullptr};
   sensor::Sensor *bath_time_setting_sensor_{nullptr};
   sensor::Sensor *total_uptime_sensor_{nullptr};
+  sensor::Sensor *max_bath_temperature_sensor_{nullptr};
+  sensor::Sensor *overheating_pcb_limit_sensor_{nullptr};
+  sensor::Sensor *standby_temperature_reduction_sensor_{nullptr};
 };
 
 }  // namespace sauna360

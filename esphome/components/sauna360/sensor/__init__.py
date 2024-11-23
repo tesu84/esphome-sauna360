@@ -25,6 +25,9 @@ CONF_HUMIDITY_SETTING = "humidity_setting"
 CONF_HUMIDITY_PERCENTAGE = "humidity_percentage"
 CONF_SETTING_BATH_TIME = "setting_bath_time"
 CONF_TOTAL_UPTIME = "total_uptime"
+CONF_MAX_BATH_TEMPERATURE = "max_bath_temperature"
+CONF_OVERHEATING_PCB_LIMIT = "overheating_pcb_limit"
+CONF_STANDBY_TEMPERATURE_REDUCTION = "standby_temperature_reduction"
 
 CONFIG_SCHEMA = cv.All(
     cv.COMPONENT_SCHEMA.extend(
@@ -69,6 +72,24 @@ CONFIG_SCHEMA = cv.All(
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
             ),
+          cv.Optional(CONF_MAX_BATH_TEMPERATURE): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
+          cv.Optional(CONF_OVERHEATING_PCB_LIMIT): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
+          cv.Optional(CONF_STANDBY_TEMPERATURE_REDUCTION): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            ),
         }
     ),
 )
@@ -97,5 +118,14 @@ async def to_code(config):
     if CONF_TOTAL_UPTIME in config:
       sens = await sensor.new_sensor(config[CONF_TOTAL_UPTIME])
       cg.add(var.set_total_uptime_sensor(sens))
+    if CONF_MAX_BATH_TEMPERATURE in config:
+      sens = await sensor.new_sensor(config[CONF_MAX_BATH_TEMPERATURE])
+      cg.add(var.set_max_bath_temperature_sensor(sens))
+    if CONF_OVERHEATING_PCB_LIMIT in config:
+      sens = await sensor.new_sensor(config[CONF_OVERHEATING_PCB_LIMIT])
+      cg.add(var.set_overheating_pcb_limit_sensor(sens))
+    if CONF_STANDBY_TEMPERATURE_REDUCTION in config:
+      sens = await sensor.new_sensor(config[CONF_STANDBY_TEMPERATURE_REDUCTION])
+      cg.add(var.set_standby_temperature_reduction_sensor(sens))
     sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     cg.add(sauna360.register_listener(var))
