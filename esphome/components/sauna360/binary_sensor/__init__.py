@@ -7,6 +7,7 @@ from esphome.const import (
     DEVICE_CLASS_LIGHT,
     DEVICE_CLASS_SAFETY,
     ENTITY_CATEGORY_DIAGNOSTIC,
+    ICON_LIGHTBULB,
 )
 from .. import (
     sauna360_ns,
@@ -34,37 +35,48 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(SAUNA360BinarySensor),
             cv.GenerateID(CONF_SAUNA360_ID): cv.use_id(SAUNA360Component),
             cv.Optional(CONF_HEATER_STATUS): binary_sensor.binary_sensor_schema(
-                device_class=DEVICE_CLASS_HEAT
+                device_class=DEVICE_CLASS_HEAT,
+                icon="mdi:heat-wave"
             ),
             cv.Optional(CONF_LIGHT_STATUS): binary_sensor.binary_sensor_schema(
-                device_class=DEVICE_CLASS_LIGHT
+                device_class=DEVICE_CLASS_LIGHT,
+                icon=ICON_LIGHTBULB,
             ),
             cv.Optional(CONF_READY_STATUS): binary_sensor.binary_sensor_schema(
-                device_class=DEVICE_CLASS_SAFETY
+                device_class=DEVICE_CLASS_SAFETY,
+                icon="mdi:security",
             ),
             cv.Optional(CONF_RELAY_X3_X4_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X5_X6_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X7_X8_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X9_X10_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X11_X12_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X13_X14_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X15_X16_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
             cv.Optional(CONF_RELAY_X17_X18_STATUS): binary_sensor.binary_sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+                icon="mdi:electric-switch",
             ),
         }
     ),

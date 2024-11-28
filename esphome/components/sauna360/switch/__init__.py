@@ -5,6 +5,7 @@ from esphome.const import (
     CONF_ID,
     DEVICE_CLASS_SWITCH,
     ICON_LIGHTBULB,
+    ENTITY_CATEGORY_CONFIG,
 )
 from .. import (
     sauna360_ns,
@@ -34,18 +35,23 @@ CONFIG_SCHEMA = {
     cv.Optional(CONF_AUX0_RELAY): switch.switch_schema(
         SAUNA360Aux0RelaySwitch,
         device_class=DEVICE_CLASS_SWITCH,
+        icon="mdi:electric-switch",
     ),
     cv.Optional(CONF_AUX1_RELAY): switch.switch_schema(
         SAUNA360Aux1RelaySwitch,
         device_class=DEVICE_CLASS_SWITCH,
+        icon="mdi:electric-switch",
     ),
     cv.Optional(CONF_AUX2_RELAY): switch.switch_schema(
         SAUNA360Aux2RelaySwitch,
         device_class=DEVICE_CLASS_SWITCH,
+        icon="mdi:electric-switch",
     ),
     cv.Optional(CONF_STANBY_ENABLE): switch.switch_schema(
         SAUNA360StandbyEnableSwitch,
         device_class=DEVICE_CLASS_SWITCH,
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        icon="mdi:cog-outline",
     ),
 }
 

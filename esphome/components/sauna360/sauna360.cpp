@@ -18,11 +18,27 @@ void SAUNA360Component::setup() {
   if (this->flow_control_pin_ != nullptr) {
     this->flow_control_pin_->setup();
   }
+  if (!std::isnan(this->max_bath_temperature_default_)) {
+    this->set_max_bath_temperature_number(max_bath_temperature_default_);
+  }
   if (!std::isnan(this->bath_time_default_)) {
     this->set_bath_time_number(bath_time_default_);
   }
   if (!std::isnan(this->bath_temperature_default_)) {
+    this->set_standby_enable(true);
     this->set_bath_temperature_number(bath_temperature_default_);
+  }
+  if (!std::isnan(this->standby_temperature_reduction_default_)) {
+    this->set_standby_temperature_reduction_number(standby_temperature_reduction_default_);
+  }
+  if (!std::isnan(this->humidity_step_default_)) {
+    this->set_humidity_step_number(humidity_step_default_);
+  }
+  if (!std::isnan(this->overheating_pcb_limit_default_)) {
+    this->set_overheating_pcb_limit_number(overheating_pcb_limit_default_);
+  }
+  if (!std::isnan(this->external_switch_renew_bathtime_default_)) {
+    this->set_external_switch_renew_bathtime_number(external_switch_renew_bathtime_default_);
   }
 }
 
@@ -32,7 +48,7 @@ void SAUNA360Component::loop() {
     this->read_byte(&c);
     this->handle_char_(c);
   }
-  if ( (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 250)){
+  if ( (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 200)){
     send_data_();
   }
 }
@@ -114,49 +130,77 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   ESP_LOGCONFIG(TAG, "%s [ HEATER --> PANEL ] CODE %04X DATA 0x%08X", format_hex_pretty(packet).c_str(), code, data);
   if (code == 0x3400){
     // State bits 31..0
+    std::string value;
     for (auto &listener : listeners_) {listener->on_light_status((data >> 3) & 1);}
     this->light_relay_switch_->publish_state((data >> 3) & 1);
     for (auto &listener : listeners_) {listener->on_heater_status((data >> 4) & 1);}
     if ((data >> 4) & 1){
       for (auto &listener : listeners_) {listener->on_ready_status(true);}
-      // set ready_status true here also if heater is ready after boot so it gets value faster.
+      value = "Heating";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+    }
+    else {
+      value = "Off";
+      for (auto &listener : listeners_) {listener->on_heater_state(value); }
+    }
+    if ((data >> 5) & 1){
+      value = "Standby";
+      for (auto &listener : listeners_) {listener->on_heater_state(value); }
     }
   }
   else if (code == 0x4002){
     int value = (data & 0xFFF);
+    this->bath_time_received_hex_ = value;
     if ((value > 64) && (value < 124)) {value-=4;}
     else if ((value >= 128) && (value < 188)) {value-=8;}
     else if ((value >= 192) && (value < 252)) {value-=12;}
     else if ((value >= 256) && (value < 316)) {value-=16;}
+    else if (value == 384) {value-=24;}
     else if (value >= 230) {value-=20;}
     for (auto &listener : listeners_) {listener->on_bath_time_setting(value);}
     this->bath_time_number_->publish_state(value);
     int max_bath_temperature = ((data >> 20) & 0x00FFFFF) / 18;
+    this->max_bath_temperature_received_hex_ = ((data >> 20) & 0x00FFFFF);
     for (auto &listener : listeners_) {listener->on_max_bath_temperature(max_bath_temperature);}
+    this->max_bath_temperature_number_->publish_state(max_bath_temperature);
   }
   else if (code == 0x4003){
     int overheating_pcb_limit = ((data >> 11) & 0x00007FF) / 18;
+    this->overheating_pcb_limit_received_hex_ = ((data) & 0x007FFFFF);
     for (auto &listener : listeners_) {listener->on_overheating_pcb_limit(overheating_pcb_limit);}
-    //Overheating PCB limit 70-90 default 80
-    //External switch function
-    //Renew Bathtime 06.AE.B3.DE overheat was 83
-    //On/Off         06.2E.B3.DE overheat was 83
+    this->overheating_pcb_limit_number_->publish_state(overheating_pcb_limit);
+    if (((data >> 23) & 1)) {
+      this->external_switching_mode_select_->publish_state("Renew Bathtime");
+    }
+    else {
+      this->external_switching_mode_select_->publish_state("On/Off");
+    }
   }
   else if (code == 0x4004){
     this->standby_enable_switch_->publish_state((data >> 12) & 1);
-    //External switch 
-    //Bath time 1-360min
-    //code 4004
-    //1    00.00.10.01
-    //2    00.00.10.02
-    //360  00.00.11.80
+    int value = (data & 0xFFF);
+    this->external_switch_renew_bathtime_received_hex_ = value;
+    if ((value > 64) && (value < 124)) {value-=4;}
+    else if ((value >= 128) && (value < 188)) {value-=8;}
+    else if ((value >= 192) && (value < 252)) {value-=12;}
+    else if ((value >= 256) && (value < 316)) {value-=16;}
+    else if (value == 384) {value-=24;}
+    else if (value >= 230) {value-=20;}
+    for (auto &listener : listeners_) {listener->on_external_switch_renew_bathtime(value);}
+    this->external_switch_renew_bathtime_number_->publish_state(value);
+    ESP_LOGCONFIG(TAG, "external_switch_renew_bathtime %d", value);
   }
   else if (code == 0x4200){
-    //Time/Date
-    //20:12 17/11/2024 83.17.1D.0C
-    //20:13 17/11/2024 83.17.1D.0D
-    //20:14 17/11/2024 83.17.1D.0E
-    //20:15 17/11/2024 83.17.1D.0F
+    int minutes = ((data) & 0x3F);
+    ESP_LOGCONFIG(TAG, "MINUTES %d", minutes);
+    int hours = ((data >> 6) & 0x1F);
+    ESP_LOGCONFIG(TAG, "HOURS %d", hours);
+    int day = (data >> 12) & 0x1F;
+    ESP_LOGCONFIG(TAG, "DAY %d", day);
+    int month = (data >> 17) & 0xF;
+    ESP_LOGCONFIG(TAG, "MONTH %d", month);
+    int year = (data >> 21) & 0x1F;
+    ESP_LOGCONFIG(TAG, "YEAR %d", year);
   }
   else if (code == 0x5200){
     //Aux 0 Relay 6 (FAN) IN WE30
@@ -193,15 +237,18 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->temperature_received_hex_ = (data & 0x00007FF);
     for (auto &listener : listeners_) {listener->on_temperature(actual_temp);}
     int setpoint_temp = ((data >> 11) & 0x00007FF) / 9.0;
+    this->setpoint_temperature_received_hex_ = ((data >> 11) & 0x00007FF);
     for (auto &listener : listeners_) {listener->on_temperature_setting(setpoint_temp);}
     this->bath_temperature_number_->publish_state(setpoint_temp);
     int standby_temperature_reduction = ((data >> 21) & 0x007FFFF) / 18;
+    this->standby_temperature_reduction_received_hex_ = ((data >> 21) & 0x007FFFF);
     for (auto &listener : listeners_) {listener->on_standby_temperature_reduction(standby_temperature_reduction);}
-    // Standby temp reduction 0-30
+    this->standby_temperature_reduction_number_->publish_state(standby_temperature_reduction);
   }
   else if (code == 0x6001) {
     int humidity_setting = (((data >> 4) & 0x00000FF) - 40) / 8;
     for (auto &listener : listeners_) {listener->on_humidity(humidity_setting);}
+    this->humidity_step_number_->publish_state(humidity_setting);
     //for (auto &listener : listeners_) {listener->on_humidity_percentage(humidity_percentage);}
     //humidity percentage might also be in this code? cant really test until have combi elite Rh% sensor. 
   }
@@ -209,7 +256,6 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //command acknowledge
   }
   else if (code == 0x7180) {
-    //State bits 31..00
     for (auto &listener : listeners_) {listener->on_relay_x3_x4_status((data >> 0) & 1);}
     for (auto &listener : listeners_) {listener->on_relay_x5_x6_status((data >> 1) & 1);}
     for (auto &listener : listeners_) {listener->on_relay_x7_x8_status((data >> 2) & 1);}
@@ -224,11 +270,23 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->aux2_relay_switch_->publish_state((data >> 3) & 1);
   }
   else if (code == 0x7280){
-    //Water level
-    //CODE 7280 DATA 0x00000000 LOW
-    //CODE 7280 DATA 0x00000800 MID
-    //CODE 7280 DATA 0x00001000 HIGH
-    //NEED TO TEST WITH WATER MORE, PINS GND H M
+    std::string value;
+    if (data == 0){
+      value = "Low";
+    }
+    else if (data == 0x800) {
+      value = "Half";
+    }
+    else if (data == 0x1000) {
+      value = "Full";
+    }
+    else if (data == 0x1800) {
+      value = "Error, Level electrodes steam tank out of service, interruption mid";
+    }
+    else {
+      value = "Error unknown, Steam tank out of service";
+    }
+    for (auto &listener : listeners_) {listener->on_water_level(value);}
   }
   else if (code == 0x9000){
     //Not allowed start 00:00 - 23:59 (1440min)
@@ -256,28 +314,20 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   packet.clear();
 }
 
-void SAUNA360Component::apply_heater_on_action() {
+void SAUNA360Component::set_heater_on() {
   this->create_send_data_(0x07, 0x7000, 0x00000040);
-  ESP_LOGCONFIG(TAG, "SETTING HEATER ON");
-    return;
 }
 
-void SAUNA360Component::apply_heater_off_action() {
+void SAUNA360Component::set_heater_off() {
   this->create_send_data_(0x07, 0x7000, 0x00000080);
-  ESP_LOGCONFIG(TAG, "SETTING HEATER OFF");
-    return;
   }
 
-void SAUNA360Component::apply_heater_standby_action() {
+void SAUNA360Component::set_heater_standby() {
   this->create_send_data_(0x07, 0x7000, 0x004000C0);
-  ESP_LOGCONFIG(TAG, "SETTING HEATER STANDBY");
-    return;
   }
 
-void SAUNA360Component::apply_heater_power_toggle_action() { 
+void SAUNA360Component::set_heater_power_toggle() { 
   this->create_send_data_(0x07, 0x7000, 0x00000001);
-  ESP_LOGCONFIG(TAG, "POWER TOGGLE");
-    return;
   }
 
 void SAUNA360Component::set_bath_time_number(float value) {
@@ -287,14 +337,73 @@ void SAUNA360Component::set_bath_time_number(float value) {
   else if ((value >= 240) && (value < 300)) {value+=16;}
   else if (value >= 300) {value+=20;}
   uint32_t data = ((uint32_t) value);
-  data |= (((uint32_t) 0x7BCB4) << 12);
+  if(this->max_bath_temperature_received_hex_) {
+    data |= (this->max_bath_temperature_received_hex_ << 20);
+  }
+  else {
+    data |= (((uint32_t) this->max_bath_temperature_default_ * 18 ) << 20);
+  }
+  this->create_send_data_(0x07, 0x4002, data);
+}
+
+void SAUNA360Component::set_max_bath_temperature_number(float value) {
+  uint32_t data = this->bath_time_received_hex_; 
+  data |= (((uint32_t) value * 18 ) << 20);
   this->create_send_data_(0x07, 0x4002, data);
 }
 
 void SAUNA360Component::set_bath_temperature_number(float value) {
-  uint32_t data = (((uint32_t) value * 9 ) << 11);
+  uint32_t data = ((this->standby_temperature_reduction_received_hex_) << 21);
+  data |= (((uint32_t) value * 9 ) << 11);
   data |= this->temperature_received_hex_;
   this->create_send_data_(0x07, 0x6000, data);
+}
+
+void SAUNA360Component::set_standby_temperature_reduction_number(float value) {
+  uint32_t data = (((uint32_t) value * 18 ) << 21);
+  if(this->setpoint_temperature_received_hex_) {
+    data |= ((this->setpoint_temperature_received_hex_) << 11);
+  }
+  else {
+    data |= (((uint32_t) this->bath_temperature_default_ * 9 ) << 11);
+  }
+  data |= ((this->setpoint_temperature_received_hex_) << 11);
+  data |= this->temperature_received_hex_;
+  this->create_send_data_(0x07, 0x6000, data);
+}
+
+void SAUNA360Component::set_humidity_step_number(float value) {
+  uint32_t data = 0x00003000;
+  data |= (((uint32_t) value * 8 + 40 ) << 4);
+  this->create_send_data_(0x07, 0x6001, data);
+}
+
+void SAUNA360Component::set_overheating_pcb_limit_number(float value) {
+  uint32_t data = (((uint32_t) value * 18) << 11);
+  auto index = this->external_switching_mode_select_->active_index();
+  switch (index.value()) {
+    case 0: //On/Off
+      data |= 0 << 23;
+      break;
+    case 1: //Renew Bathtime 
+      data |= 1 << 23;
+      break;
+    case 2: //On/Off //select has a bug so have to have 3 options atm.
+      data |= 0 << 23;
+      break;
+  }
+  this->create_send_data_(0x07, 0x4003, data);
+}
+
+void SAUNA360Component::set_external_switch_renew_bathtime_number(float value) {
+  if ((value > 60) && (value < 120)) {value+=4;}
+  else if ((value >= 120) && (value < 180)) {value+=8;}
+  else if ((value >= 180) && (value < 240)) {value+=12;}
+  else if ((value >= 240) && (value < 300)) {value+=16;}
+  else if (value >= 300) {value+=20;}
+  uint32_t data = ((uint32_t) value);
+  data |= (this->standby_enable_switch_) ? (1 << 12) : (0 << 12) ;
+  this->create_send_data_(0x07, 0x4004, data);
 }
 
 void SAUNA360Component::set_light_relay(bool enable) {
@@ -304,6 +413,89 @@ void SAUNA360Component::set_light_relay(bool enable) {
 void SAUNA360Component::set_aux0_relay(bool enable) {
   uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
   this->create_send_data_(0x07, 0x5200, data);
+}
+
+void SAUNA360Component::set_aux0_relay_mode(const std::string &state) {
+  uint32_t data;
+  auto index = this->aux0_relay_mode_select_->active_index();
+  switch (index.value()) {
+    case 0: //Not in use
+      data = 0x8000000;
+      break;
+    case 1: //On/Off 
+      data = 0xC0000000;
+      break;
+    case 2: //Fragrance 
+      data = 0xD0000000;
+      break;
+    //pump 100ms...2min
+    //stop 1s...2h
+    // 0x5000A001 pump 100ms stop 1s
+    // 0x52583C20 pump 2min 2h
+  }
+  //this->create_send_data_(0x07, 0x5200, data);
+  //not yet in use
+}
+
+void SAUNA360Component::set_aux1_relay_mode(const std::string &state) {
+  uint32_t data;
+  auto index = this->aux1_relay_mode_select_->active_index();
+  switch (index.value()) {
+    case 0: //Not in use
+      data = 0x8000000;
+      break;
+    case 1: //On/Off 
+      data = 0xC0000000;
+      break;
+    case 2: //Fragrance 
+      data = 0xD0000000;
+      break;
+    //pump 100ms...2min
+    //stop 1s...2h
+    // 0x5000A001 pump 100ms stop 1s
+    // 0x52583C20 pump 2min 2h
+  }
+  //this->create_send_data_(0x07, 0x5201, data);
+  //not yet in use
+}
+
+void SAUNA360Component::set_aux2_relay_mode(const std::string &state) {
+  uint32_t data;
+  auto index = this->aux2_relay_mode_select_->active_index();
+  switch (index.value()) {
+    case 0: //Not in use
+      data = 0x8000000;
+      break;
+    case 1: //On/Off 
+      data = 0xC0000000;
+      break;
+    case 2: //Fragrance 
+      data = 0xD0000000;
+      break;
+      //pump 100ms...2min
+      //stop 1s...2h
+      // 0x5000A001 pump 100ms stop 1s
+      // 0x52583C20 pump 2min 2h
+  }
+  //this->create_send_data_(0x07, 0x5202, data);
+  //not yet in use
+}
+
+void SAUNA360Component::set_external_switching_mode(const std::string &state) {
+  uint32_t data = overheating_pcb_limit_received_hex_;
+  auto index = this->external_switching_mode_select_->active_index();
+  switch (index.value()) {
+    case 0: //On/Off
+      data |= 0 << 23;
+      break;
+    case 1: //Renew Bathtime 
+      data |= 1 << 23;
+      break;
+    case 2: //On/Off //select has a bug so have to have 3 options atm.
+      data |= 0 << 23;
+      break;
+  }
+  this->create_send_data_(0x07, 0x4003, data);
 }
 
 void SAUNA360Component::set_aux1_relay(bool enable) {
@@ -317,10 +509,8 @@ void SAUNA360Component::set_aux2_relay(bool enable) {
 }
 
 void SAUNA360Component::set_standby_enable(bool enable) {
-    //Standby
-    //disable 00.00.00.1E
-    //enable  00.00.10.1E
-  uint32_t data = (enable) ? 0x0000101E : 0xC0000001E;
+  uint32_t data = (enable) ? (1 << 12) : (0 << 12);
+  data |= this->external_switch_renew_bathtime_received_hex_;
   this->create_send_data_(0x07, 0x4004, data);
 }
 

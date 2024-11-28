@@ -67,112 +67,163 @@ sauna360:
 binary_sensor:
 - platform: sauna360
   heater_status:
-    name: "Heater Status"
+    name: "Bsensor Heating Status"
 - platform: sauna360
   light_status:
-    name: "Light Status"
+    name: "Bsensor Light Status"
 - platform: sauna360
   ready_status: 
-    name: "Ready Status"
+    name: "Bsensor Ready Status"
 - platform: sauna360
   relay_x3_x4_status: 
-    name: "Relay X3-X4 Status"
+    name: "Bsensor Relay X3-X4 Status"
 - platform: sauna360
   relay_x5_x6_status: 
-    name: "Relay X5-X6 Status"
+    name: "Bsensor Relay X5-X6 Status"
 - platform: sauna360
   relay_x7_x8_status: 
-    name: "Relay X7-X8 Status"
+    name: "Bsensor Relay X7-X8 Status"
 - platform: sauna360
   relay_x9_x10_status: 
-    name: "Relay X9-X10 Status"
+    name: "Bsensor Relay X9-X10 Status"
 - platform: sauna360
   relay_x11_x12_status: 
-    name: "Relay X11-X12 Status"
+    name: "Bsensor Relay X11-X12 Status"
 - platform: sauna360
   relay_x13_x14_status: 
-    name: "Relay X13-X14 Status"
+    name: "Bsensor Relay X13-X14 Status"
 - platform: sauna360
   relay_x15_x16_status: 
-    name: "Relay X15-X16 Status"
+    name: "Bsensor Relay X15-X16 Status"
 - platform: sauna360
   relay_x17_x18_status: 
-    name: "Relay X17-X18 Status"
+    name: "Bsensor Relay X17-X18 Status"
 
 sensor:
 - platform: wifi_signal
   name: "${device_name} WiFi Signal"
   update_interval: 60s
+  icon: "mdi:wifi"
 - platform: sauna360
   current_temperature:
-    name: "Current Temperature"
+    name: "Sensor Current Temperature"
 - platform: sauna360
   setting_temperature:
-    name: "Setting Temperature"
+    name: "Sensor Setting Temperature"
 - platform: sauna360
   remaining_time:
-    name: "Remaining time"
+    name: "Sensor Remaining time"
 - platform: sauna360
   setting_bath_time:
-    name: "Setting Bath Time"
+    name: "Sensor Setting Bath Time"
 - platform: sauna360
   humidity_setting: #combi/steam models
-    name: "Setting Humidity"
+    name: "Sensor Setting Humidity"
 - platform: sauna360
   humidity_percentage: #combi/steam models
-    name: "Humidity"
+    name: "Sensor Humidity"
 - platform: sauna360
   total_uptime:
-    name: "Total Uptime"
+    name: "Sensor Total Uptime"
 - platform: sauna360
   max_bath_temperature:
-    name: "Max Bath Temperature"
+    name: "Sensor Max Bath Temperature"
 - platform: sauna360
   overheating_pcb_limit:
-    name: "Overheating PCB Limit"
+    name: "Sensor Overheating PCB Limit"
 - platform: sauna360
   standby_temperature_reduction:
-    name: "Standby Temperature Reduction"
+    name: "Sensor Standby Temperature Reduction"
+- platform: sauna360
+  external_switch_renew_bathtime:
+    name: "Sensor External Switch Renew Bathtime"
 
 button:
 - platform: sauna360
   heater_on:
-    name: "On"
+    name: "Button On"
 - platform: sauna360
   heater_off:
-    name: "Off "
+    name: "Button Off "
 - platform: sauna360
-  heater_standby: #use only if elite panel and stanby setting is on from panel.
-    name: "Standby"
+  heater_standby: #Standby needs to be enabled (switch)
+    name: "Button Standby"
 - platform: sauna360
   heater_power_toggle:
-    name: "Power Toggle"
+    name: "Button Power Toggle"
 
 number:
 - platform: sauna360
   bath_time:
-    name: "Bath Time"
+    name: "Number Bath Time"
     mode: box # box / slider
     bath_time_default: 90 #1-360min
 - platform: sauna360
   bath_temperature:
-    name: "Bath Temperature"
+    name: "Number Bath Temperature"
     mode: box # box / slider
     bath_temperature_default: 65 #40-110°C
+- platform: sauna360
+  standby_temperature_reduction:
+    name: "Number Standby Temperature Reduction"
+    mode: box # box / slider
+    standby_temperature_reduction_default: 30 #0-30°C
+- platform: sauna360
+  humidity_step:
+    name: "Number Humidity Step Setting"
+    mode: box # box / slider
+    humidity_step_default: 2 #0-10
+- platform: sauna360
+  max_bath_temperature:
+    name: "Number Max Bath Temperature"
+    mode: box # box / slider
+    max_bath_temperature_default: 90 #40-110°C
+- platform: sauna360
+  overheating_pcb_limit:
+    name: "Number Overheating PCB Limit"
+    mode: box # box / slider
+    overheating_pcb_limit_default: 80 #70-90°C
+- platform: sauna360
+  external_switch_renew_bathtime:
+    name: "Number External Switch Renew Bath Time"
+    mode: box # box / slider
+    external_switch_renew_bathtime_default: 90 #1-360min
 
 switch:
 - platform: sauna360
   light_relay:
-    name: "Light"
+    name: "Switch Light"
 - platform: sauna360
   aux0_relay:
-    name: "Aux 0 (FAN)" #FAN
+    name: "Switch Aux 0 (FAN)" #FAN
 - platform: sauna360
   aux1_relay:
-    name: "Aux 1"
+    name: "Switch Aux 1"
 - platform: sauna360
   aux2_relay:
-    name: "Aux 2"
+    name: "Switch Aux 2"
 - platform: sauna360
   standby_enable:
-    name: "Standby Enable"
+    name: "Switch Standby Enable"
+
+select:
+- platform: sauna360
+  relay_aux0_mode: #not implemented
+    name: "Select Relay Aux0 Mode"
+- platform: sauna360
+  relay_aux1_mode: #not implemented
+    name: "Select Relay Aux1 Mode"
+- platform: sauna360
+  relay_aux2_mode: #not implemented
+    name: "Select Relay Aux2 Mode"
+- platform: sauna360
+  external_switching_mode:
+    name: "Select External Switch Mode"
+
+text_sensor:
+- platform: sauna360
+  heater_state:
+    name: "TSensor Heater State"
+- platform: sauna360
+  water_level:
+    name: "TSensor Water Level"

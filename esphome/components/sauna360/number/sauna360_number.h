@@ -22,5 +22,45 @@ class SAUNA360BathTemperatureNumber : public number::Number, public Parented<SAU
   void control(float value) override;
 };
 
+class SAUNA360StandbyTemperatureReductionNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360StandbyTemperatureReductionNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
+class SAUNA360HumidityStepNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360HumidityStepNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
+class SAUNA360MaxBathTemperatureNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360MaxBathTemperatureNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
+class SAUNA360OverheatingPCBLimitNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360OverheatingPCBLimitNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
+class SAUNA360ExternalSwitchRenewBathTimeNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360ExternalSwitchRenewBathTimeNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
 }  // namespace sauna360
 }  // namespace esphome

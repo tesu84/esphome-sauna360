@@ -89,6 +89,14 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
       }
     }
   }
+  void set_external_switch_renew_bathtime_sensor(sensor::Sensor *sensor) { this->external_switch_renew_bathtime_sensor_ = sensor; }
+  void on_external_switch_renew_bathtime(uint16_t external_switch_renew_bathtime) override {
+    if (this->external_switch_renew_bathtime_sensor_ != nullptr) {
+      if (this->external_switch_renew_bathtime_sensor_->get_state() != external_switch_renew_bathtime) {
+        this->external_switch_renew_bathtime_sensor_->publish_state(external_switch_renew_bathtime);
+      }
+    }
+  }
  protected:
   sensor::Sensor *temperature_sensor_{nullptr};
   sensor::Sensor *temperature_setting_sensor_{nullptr};
@@ -100,6 +108,7 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
   sensor::Sensor *max_bath_temperature_sensor_{nullptr};
   sensor::Sensor *overheating_pcb_limit_sensor_{nullptr};
   sensor::Sensor *standby_temperature_reduction_sensor_{nullptr};
+  sensor::Sensor *external_switch_renew_bathtime_sensor_{nullptr};
 };
 
 }  // namespace sauna360

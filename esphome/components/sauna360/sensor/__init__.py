@@ -8,6 +8,9 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
     UNIT_MINUTE,
+    ICON_THERMOMETER,
+    ICON_WATER_PERCENT,
+    ICON_TIMER,
 )
 
 from .. import (
@@ -28,6 +31,7 @@ CONF_TOTAL_UPTIME = "total_uptime"
 CONF_MAX_BATH_TEMPERATURE = "max_bath_temperature"
 CONF_OVERHEATING_PCB_LIMIT = "overheating_pcb_limit"
 CONF_STANDBY_TEMPERATURE_REDUCTION = "standby_temperature_reduction"
+CONF_EXTERNAL_SWITCH_RENEW_BATH_TIME = "external_switch_renew_bathtime"
 
 CONFIG_SCHEMA = cv.All(
     cv.COMPONENT_SCHEMA.extend(
@@ -39,56 +43,72 @@ CONFIG_SCHEMA = cv.All(
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_THERMOMETER,
             ),
           cv.Optional(CONF_SETTING_TEMPERATURE): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_THERMOMETER,
             ),
           cv.Optional(CONF_REMAINING_TIME): sensor.sensor_schema(
             unit_of_measurement=UNIT_MINUTE,
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:counter",
             ),
           cv.Optional(CONF_HUMIDITY_SETTING): sensor.sensor_schema(
             unit_of_measurement="",
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_WATER_PERCENT,
             ),
           cv.Optional(CONF_HUMIDITY_PERCENTAGE): sensor.sensor_schema(
             unit_of_measurement="%",
             accuracy_decimals=0,
             device_class="humidity",
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_WATER_PERCENT,
             ),
           cv.Optional(CONF_SETTING_BATH_TIME): sensor.sensor_schema(
             unit_of_measurement=UNIT_MINUTE,
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_TIMER,
             ),
           cv.Optional(CONF_TOTAL_UPTIME): sensor.sensor_schema(
             unit_of_measurement=UNIT_MINUTE,
             device_class=DEVICE_CLASS_DURATION,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:counter",
             ),
           cv.Optional(CONF_MAX_BATH_TEMPERATURE): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_THERMOMETER,
             ),
           cv.Optional(CONF_OVERHEATING_PCB_LIMIT): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-alert",
             ),
           cv.Optional(CONF_STANDBY_TEMPERATURE_REDUCTION): sensor.sensor_schema(
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
+            icon="mdi:thermometer-chevron-down",
+            ),
+          cv.Optional(CONF_EXTERNAL_SWITCH_RENEW_BATH_TIME): sensor.sensor_schema(
+            unit_of_measurement=UNIT_MINUTE,
+            device_class=DEVICE_CLASS_DURATION,
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_TIMER,
             ),
         }
     ),
@@ -127,5 +147,8 @@ async def to_code(config):
     if CONF_STANDBY_TEMPERATURE_REDUCTION in config:
       sens = await sensor.new_sensor(config[CONF_STANDBY_TEMPERATURE_REDUCTION])
       cg.add(var.set_standby_temperature_reduction_sensor(sens))
+    if CONF_EXTERNAL_SWITCH_RENEW_BATH_TIME in config:
+      sens = await sensor.new_sensor(config[CONF_EXTERNAL_SWITCH_RENEW_BATH_TIME])
+      cg.add(var.set_external_switch_renew_bathtime_sensor(sens))
     sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     cg.add(sauna360.register_listener(var))
