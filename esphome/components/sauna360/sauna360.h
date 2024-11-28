@@ -83,6 +83,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
    SUB_SELECT(aux1_relay_mode)
    SUB_SELECT(aux2_relay_mode)
    SUB_SELECT(external_switching_mode)
+   SUB_SELECT(bath_type_priority)
   #endif
   #ifdef USE_BUTTON
    SUB_BUTTON(heater_on)
@@ -123,6 +124,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_aux2_relay(bool enable);
     void set_aux2_relay_mode(const std::string &state);
     void set_external_switching_mode(const std::string &state);
+    void set_bath_type_priority(const std::string &state);
     void set_standby_enable(bool enable);
 
   protected:
@@ -143,6 +145,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     uint32_t max_bath_temperature_received_hex_;
     uint32_t external_switch_renew_bathtime_received_hex_;
     uint32_t overheating_pcb_limit_received_hex_;
+    uint32_t bath_type_priority_received_hex_;
     std::vector<SAUNA360Listener *> listeners_{};
     float bath_time_default_{NAN};
     float bath_temperature_default_{NAN};

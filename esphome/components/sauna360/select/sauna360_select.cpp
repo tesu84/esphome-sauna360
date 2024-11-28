@@ -26,5 +26,10 @@ void Sauna360ExternalSwitchSelect::control(const std::string &value) {
   this->parent_->set_external_switching_mode(value);
 }
 
+void Sauna360BathTypePrioritySelect::control(const std::string &value) {
+  this->publish_state(value);
+  this->parent_->set_bath_type_priority(value);
+}
+
 }  // namespace sauna360
 }  // namespace esphome

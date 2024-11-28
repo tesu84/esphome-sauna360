@@ -15,11 +15,14 @@ CONF_RELAY_AUX2_MODE = "relay_aux2_mode"
 CONF_AUX_SELECTS = "Not in use", "On/Off", "Fragrance"
 CONF_EXTERNAL_SWITCH_MODE = "external_switching_mode"
 CONF_EXTERNAL_SWITCH_SELECTS = "On/Off", "Renew Bathtime", "On/Off"
+CONF_BATH_TYPE_PRIORITY = "bath_type_priority"
+CONF_BATH_TYPE_PRIORITY_SELECTS = "Automatic", "Temperature", "Humidity"
 
 Sauna360RelayAux0Select = sauna360_ns.class_("Sauna360RelayAux0Select", cg.Component)
 Sauna360RelayAux1Select = sauna360_ns.class_("Sauna360RelayAux1Select", cg.Component)
 Sauna360RelayAux2Select = sauna360_ns.class_("Sauna360RelayAux2Select", cg.Component)
 Sauna360ExternalSwitchSelect = sauna360_ns.class_("Sauna360ExternalSwitchSelect", cg.Component)
+Sauna360BathTypePrioritySelect = sauna360_ns.class_("Sauna360BathTypePrioritySelect", cg.Component)
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_SAUNA360_ID): cv.use_id(SAUNA360Component),
@@ -40,6 +43,11 @@ CONFIG_SCHEMA = {
     ),
     cv.Optional(CONF_EXTERNAL_SWITCH_MODE): select.select_schema(
         Sauna360ExternalSwitchSelect,
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        icon="mdi:cog-outline"
+    ),
+    cv.Optional(CONF_BATH_TYPE_PRIORITY): select.select_schema(
+        Sauna360BathTypePrioritySelect,
         entity_category=ENTITY_CATEGORY_CONFIG,
         icon="mdi:cog-outline"
     ),
@@ -75,3 +83,10 @@ async def to_code(config):
         )
         await cg.register_parented(sel, config[CONF_SAUNA360_ID])
         cg.add(SAUNA360_component.set_external_switching_mode_select(sel))
+    if bath_type_priority_config := config.get(CONF_BATH_TYPE_PRIORITY):
+        sel = await select.new_select(
+            bath_type_priority_config,
+            options=[CONF_BATH_TYPE_PRIORITY_SELECTS],
+        )
+        await cg.register_parented(sel, config[CONF_SAUNA360_ID])
+        cg.add(SAUNA360_component.set_bath_type_priority_select(sel))

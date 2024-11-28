@@ -219,6 +219,9 @@ select:
 - platform: sauna360
   external_switching_mode:
     name: "Select External Switch Mode"
+- platform: sauna360
+  bath_type_priority:
+    name: "Select Bath Type Priority"
 
 text_sensor:
 - platform: sauna360

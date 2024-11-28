@@ -119,15 +119,22 @@ void SAUNA360Component::handle_frame_(std::vector<uint8_t> frame) {
 
 void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   uint8_t address = packet[0];
-  uint8_t packetType = packet[1];
+  uint8_t packet_type = packet[1];
   uint16_t code = encode_uint16(packet[2],packet[3]);
   uint32_t data = encode_uint32(packet[4],packet[5],packet[6],packet[7]);
-  if ((packetType == 0x07) || (packetType == 0x09)) {
+  if ((packet_type == 0x07) || (packet_type == 0x08)) {
     ESP_LOGCONFIG(TAG, "%s [ HEATER <-- PANEL ] CODE %04X DATA 0x%08X", format_hex_pretty(packet).c_str(), code, data);
     packet.clear();
     return;
   }
   ESP_LOGCONFIG(TAG, "%s [ HEATER --> PANEL ] CODE %04X DATA 0x%08X", format_hex_pretty(packet).c_str(), code, data);
+  if (code == 0x1700) {
+    //Facility type
+    // 0x7BCB4180 also CODE 4003 DATA 0x022D0000 //Private
+    // 0x7BCB4300 also CODE 4003 DATA 0x012D0000 //Time controlled 
+    // 0x7BCB4600 also CODE 4003 DATA 0x002D0000 //Supervised
+    // sends also code 4003 before, 2D0 is pcb temp limit
+  }
   if (code == 0x3400){
     // State bits 31..0
     std::string value;
@@ -249,6 +256,16 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     int humidity_setting = (((data >> 4) & 0x00000FF) - 40) / 8;
     for (auto &listener : listeners_) {listener->on_humidity(humidity_setting);}
     this->humidity_step_number_->publish_state(humidity_setting);
+    this->bath_type_priority_received_hex_ = ((data) & 0x000F000);
+    if (((data) & 0x0000F000) == 0x3000){
+      this->bath_type_priority_select_->publish_state("Automatic");
+    }
+    if (((data) & 0x0000F000) == 0x7000){
+      this->bath_type_priority_select_->publish_state("Temperature");
+    }
+    if (((data) & 0x0000F000) == 0xB000){
+      this->bath_type_priority_select_->publish_state("Humidity");
+    }
     //for (auto &listener : listeners_) {listener->on_humidity_percentage(humidity_percentage);}
     //humidity percentage might also be in this code? cant really test until have combi elite Rh% sensor. 
   }
@@ -373,7 +390,7 @@ void SAUNA360Component::set_standby_temperature_reduction_number(float value) {
 }
 
 void SAUNA360Component::set_humidity_step_number(float value) {
-  uint32_t data = 0x00003000;
+  uint32_t data = this->bath_type_priority_received_hex_;
   data |= (((uint32_t) value * 8 + 40 ) << 4);
   this->create_send_data_(0x07, 0x6001, data);
 }
@@ -497,6 +514,24 @@ void SAUNA360Component::set_external_switching_mode(const std::string &state) {
   }
   this->create_send_data_(0x07, 0x4003, data);
 }
+
+void SAUNA360Component::set_bath_type_priority(const std::string &state) {
+  uint32_t data;
+  auto index = this->bath_type_priority_select_->active_index();
+  switch (index.value()) {
+    case 0: //Automatic
+      data |= 0x3 << 12;
+      break;
+    case 1: //Temperature 
+      data |= 0x7 << 12;
+      break;
+    case 2: //Humidity
+      data |= 0xB << 12;
+      break;
+  }
+  this->create_send_data_(0x07, 0x6001, data);
+}
+
 
 void SAUNA360Component::set_aux1_relay(bool enable) {
   uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;

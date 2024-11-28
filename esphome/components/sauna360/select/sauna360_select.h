@@ -38,5 +38,13 @@ class Sauna360ExternalSwitchSelect : public Component, public select::Select, pu
   void control(const std::string &value) override;
 };
 
+class Sauna360BathTypePrioritySelect : public Component, public select::Select, public Parented<SAUNA360Component> {
+ public:
+  Sauna360BathTypePrioritySelect() = default;
+
+ protected:
+  void control(const std::string &value) override;
+};
+
 }  // namespace sauna360
 }  // namespace esphome
