@@ -405,9 +405,6 @@ void SAUNA360Component::set_overheating_pcb_limit_number(float value) {
     case 1: //Renew Bathtime 
       data |= 1 << 23;
       break;
-    case 2: //On/Off //select has a bug so have to have 3 options atm.
-      data |= 0 << 23;
-      break;
   }
   this->create_send_data_(0x07, 0x4003, data);
 }
@@ -507,9 +504,6 @@ void SAUNA360Component::set_external_switching_mode(const std::string &state) {
       break;
     case 1: //Renew Bathtime 
       data |= 1 << 23;
-      break;
-    case 2: //On/Off //select has a bug so have to have 3 options atm.
-      data |= 0 << 23;
       break;
   }
   this->create_send_data_(0x07, 0x4003, data);
