@@ -3,19 +3,6 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import datetime
 from esphome.const import (
-    CONF_INITIAL_VALUE,
-    CONF_LAMBDA,
-    CONF_OPTIMISTIC,
-    CONF_RESTORE_VALUE,
-    CONF_SET_ACTION,
-    CONF_DAY,
-    CONF_HOUR,
-    CONF_MINUTE,
-    CONF_MONTH,
-    CONF_SECOND,
-    CONF_TYPE,
-    CONF_YEAR,
-    ENTITY_CATEGORY_CONFIG,
     CONF_ID,
 )
 
@@ -25,7 +12,7 @@ from .. import (
     CONF_SAUNA360_ID,
 )
 
-SAUNA360DateTime = sauna360_ns.class_("SAUNA360DateTime", datetime.DateTimeEntity, cg.Component)
+SAUNA360DateTime = sauna360_ns.class_("SAUNA360DateTime", datetime.DateTimeEntity, cg.PollingComponent)
 
 CONF_DATE_TIME = "date_time"
 
@@ -42,10 +29,14 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
+    #var = await datetime.new_datetime(config)
     var = cg.new_Pvariable(config[CONF_ID])
-    #await cg.register_component(var, config)
+    await cg.register_component(var, config)
     if CONF_DATE_TIME in config:
-        n = await datetime.new_datetime(config[CONF_DATE_TIME])
-        cg.add(var.set_initial_value(n))
+        datetime_struct = cg.StructInitializer(
+            cg.ESPTime,
+        )
+        cg.add(var.set_initial_value(datetime_struct))
+    await cg.register_component(var, config)
     #sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     #cg.add(sauna360.register_listener(var))
