@@ -149,7 +149,12 @@ substitutions:
   device_name: helo
 
 external_components:
-  - source: esphome/components
+#  - source: esphome/components #local dev
+  - source:
+      type: git
+      url: https://github.com/tesu84/esphome-sauna360/
+      ref: develop
+    components: [ sauna360 ]
 
 esphome:
   name: ${device_name}
