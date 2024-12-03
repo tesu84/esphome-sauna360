@@ -4,6 +4,7 @@ import esphome.config_validation as cv
 from esphome.components import datetime
 from esphome.const import (
     CONF_ID,
+    ICON_TIMELAPSE,
 )
 
 from .. import (
@@ -29,14 +30,11 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
-    #var = await datetime.new_datetime(config)
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     if CONF_DATE_TIME in config:
         datetime_struct = cg.StructInitializer(
             cg.ESPTime,
         )
-        cg.add(var.set_initial_value(datetime_struct))
-    await cg.register_component(var, config)
-    #sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
-    #cg.add(sauna360.register_listener(var))
+        datetime_var = await datetime.new_datetime(config[CONF_DATE_TIME])
+        cg.add(datetime_var.set_initial_value(datetime_struct))

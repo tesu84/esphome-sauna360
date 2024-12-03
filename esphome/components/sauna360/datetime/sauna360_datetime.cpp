@@ -1,7 +1,4 @@
 #include "sauna360_datetime.h"
-
-#ifdef USE_DATETIME_DATETIME
-
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -146,5 +143,3 @@ void SAUNA360DateTime::dump_config() {
 
 }  // namespace sauna360
 }  // namespace esphome
-
-#endif  // USE_DATETIME_DATETIME
