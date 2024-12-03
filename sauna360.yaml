@@ -230,3 +230,8 @@ text_sensor:
 - platform: sauna360
   water_level:
     name: "TSensor Water Level"
+
+datetime:
+- platform: sauna360
+  date_time:
+    name: "Datetime"
