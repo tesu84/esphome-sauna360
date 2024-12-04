@@ -235,3 +235,9 @@ datetime:
 - platform: sauna360
   date_time:
     name: "Datetime"
+- platform: sauna360
+  not_allowed_start_from:
+    name: "Not Allowed Start From"
+- platform: sauna360
+  not_allowed_start_until:
+    name: "Not Allowed Start Until"
