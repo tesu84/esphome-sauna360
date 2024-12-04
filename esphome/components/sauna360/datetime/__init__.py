@@ -49,12 +49,16 @@ async def to_code(config):
     if CONF_NOT_ALLOWED_START_FROM in config:
         time_struct = cg.StructInitializer(
             cg.ESPTime,
+            ("minute", 0),
+            ("hour", 0),
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_FROM])
         cg.add(time_var.set_initial_value(time_struct))
     if CONF_NOT_ALLOWED_START_UNTIL in config:
         time_struct = cg.StructInitializer(
             cg.ESPTime,
+            ("minute", 0),
+            ("hour", 0),
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_UNTIL])
         cg.add(time_var.set_initial_value(time_struct))

@@ -14,25 +14,25 @@
 namespace esphome {
 namespace sauna360 {
 
-class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent {
+class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent, public Parented<SAUNA360Component> {
  public:
-  void set_template(std::function<optional<ESPTime>()> &&f) { this->f_ = f; } //
+  void set_template(std::function<optional<ESPTime>()> &&f) { this->f_ = f; }
 
   void setup() override;
   void update() override;
   void dump_config() override;
-  float get_setup_priority() const override { return setup_priority::HARDWARE; } //
+  float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
-  Trigger<ESPTime> *get_set_trigger() const { return this->set_trigger_; } //
-  void set_optimistic(bool optimistic) { this->optimistic_ = optimistic; } //
+  Trigger<ESPTime> *get_set_trigger() const { return this->set_trigger_; }
+  void set_optimistic(bool optimistic) { this->optimistic_ = optimistic; }
 
   void set_initial_value(ESPTime initial_value) { this->initial_value_ = initial_value; }
-  void set_restore_value(bool restore_value) { this->restore_value_ = restore_value; } //
+  void set_restore_value(bool restore_value) { this->restore_value_ = restore_value; }
 
  protected:
   void control(const datetime::DateTimeCall &call) override;
 
-  bool optimistic_{false};
+  bool optimistic_{true};
   ESPTime initial_value_{};
   bool restore_value_{false};
   Trigger<ESPTime> *set_trigger_ = new Trigger<ESPTime>();
@@ -59,7 +59,7 @@ class SAUNA360NotAllowedStartFromTime : public datetime::TimeEntity, public Poll
  protected:
   void control(const datetime::TimeCall &call) override;
 
-  bool optimistic_{false};
+  bool optimistic_{true};
   ESPTime initial_value_{};
   bool restore_value_{false};
   Trigger<ESPTime> *set_trigger_ = new Trigger<ESPTime>();
@@ -86,7 +86,7 @@ class SAUNA360NotAllowedStartUntilTime : public datetime::TimeEntity, public Pol
  protected:
   void control(const datetime::TimeCall &call) override;
 
-  bool optimistic_{false};
+  bool optimistic_{true};
   ESPTime initial_value_{};
   bool restore_value_{false};
   Trigger<ESPTime> *set_trigger_ = new Trigger<ESPTime>();

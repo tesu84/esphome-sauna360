@@ -157,7 +157,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     float max_bath_temperature_default_{NAN};
     float overheating_pcb_limit_default_{NAN};
     float external_switch_renew_bathtime_default_{NAN};
-    //optional<std::function<optional<ESPTime>()>> f_;
+    //SAUNA360DateTime::control *date_time_state_{nullptr};
 };
 
 

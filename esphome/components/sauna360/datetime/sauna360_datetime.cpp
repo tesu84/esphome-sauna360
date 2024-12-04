@@ -333,6 +333,5 @@ void SAUNA360NotAllowedStartUntilTime::dump_config() {
   LOG_UPDATE_INTERVAL(this);
 }
 
-
 }  // namespace sauna360
 }  // namespace esphome
