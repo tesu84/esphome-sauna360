@@ -208,7 +208,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     ESP_LOGCONFIG(TAG, "MONTH %d", month);
     int year = (data >> 21) & 0x1F;
     ESP_LOGCONFIG(TAG, "YEAR %d", year);
-    auto call = datetime->make_call();
+    //auto call = datetime->make_call();
     //call.set_time("12:34:56");
     //call.perform();
   }
