@@ -16,7 +16,7 @@ namespace sauna360 {
 
 class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent, public SAUNA360Listener {
  public:
-  void set_datetime(std::function<optional<ESPTime>()> &&f) { this->f_ = f; }
+  void set_datetime(std::function<optional<ESPTime>()> &&f) override { this->f_ = f; }
 
   void setup() override;
   void update() override;
