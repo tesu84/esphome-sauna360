@@ -62,3 +62,5 @@ async def to_code(config):
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_UNTIL])
         cg.add(time_var.set_initial_value(time_struct))
+    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
+    cg.add(sauna360.register_listener(var))

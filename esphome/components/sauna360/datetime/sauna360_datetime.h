@@ -14,7 +14,7 @@
 namespace esphome {
 namespace sauna360 {
 
-class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent, public Parented<SAUNA360Component> {
+class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent, public SAUNA360Listener {
  public:
   void set_template(std::function<optional<ESPTime>()> &&f) { this->f_ = f; }
 

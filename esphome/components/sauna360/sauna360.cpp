@@ -208,9 +208,13 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     ESP_LOGCONFIG(TAG, "MONTH %d", month);
     int year = (data >> 21) & 0x1F;
     ESP_LOGCONFIG(TAG, "YEAR %d", year);
-    //auto call = datetime->make_call();
-    //call.set_time("12:34:56");
+    //DateTimeCall &set_datetime(2011,1,2,3,4,0);
+    //DateTimeCall->set_year(2011);
+    //auto call = set_date_time_.make_call();
+    //call.set_date("2024-12-31 12:34:56");
     //call.perform();
+    //auto call = datetime
+    for (auto &listener : listeners_) {listener->control(2011);}
   }
   else if (code == 0x5200){
     //Aux 0 Relay 6 (FAN) IN WE30

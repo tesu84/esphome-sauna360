@@ -231,6 +231,9 @@ text_sensor:
   water_level:
     name: "TSensor Water Level"
 
+time:
+  - platform: homeassistant
+
 datetime:
 - platform: sauna360
   name: "Datetime"
