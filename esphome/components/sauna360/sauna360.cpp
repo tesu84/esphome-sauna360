@@ -214,7 +214,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     //call.set_date("2024-12-31 12:34:56");
     //call.perform();
     //auto call = datetime
-    for (auto &listener : listeners_) {listener->control(2011);}
+    for (auto &listener : listeners_) {listener->set_datetime(2011,1,2,3,4,0);}
   }
   else if (code == 0x5200){
     //Aux 0 Relay 6 (FAN) IN WE30
