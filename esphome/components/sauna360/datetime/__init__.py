@@ -12,7 +12,7 @@ from .. import (
     CONF_SAUNA360_ID,
 )
 
-SAUNA360DateTime = sauna360_ns.class_("SAUNA360DateTime", datetime.DateTimeEntity, cg.PollingComponent)
+SAUNA360DateTime = sauna360_ns.class_("SAUNA360DateTime", datetime.DateTimeEntity, cg.Component)
 SAUNA360NotAllowedStartFromTime = sauna360_ns.class_("SAUNA360NotAllowedStartFromTime", datetime.TimeEntity, cg.PollingComponent)
 SAUNA360NotAllowedStartUntilTime = sauna360_ns.class_("SAUNA360NotAllowedStartUntilTime", datetime.TimeEntity, cg.PollingComponent)
 

@@ -14,12 +14,30 @@
 namespace esphome {
 namespace sauna360 {
 
-class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponent, public SAUNA360Listener {
+class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, public SAUNA360Listener {
  public:
-  void set_datetime(ESPTime f) { this->f_ = f; ESP_LOGI("Datetime", "IM HERE SET_DATETIME");}
+  void set_datetime(ESPTime &f) override { 
+    this->f_ = f; 
+    //ESP_LOGI("Datetime", "IM HERE SET_DATETIME");
+      if (!this->f_.has_value())
+    return;
+
+  auto val = this->f_;
+  if (!val.has_value())
+    return;
+
+  //ESP_LOGI("Datetime", "IM HERE UPDATE");
+  this->year_ = val->year;
+  this->month_ = val->month;
+  this->day_ = val->day_of_month;
+  this->hour_ = val->hour;
+  this->minute_ = val->minute;
+  this->second_ = val->second;
+  this->publish_state();
+  }
 
   void setup() override;
-  void update() override;
+  //void update() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::HARDWARE; }
 
@@ -27,7 +45,7 @@ class SAUNA360DateTime : public datetime::DateTimeEntity, public PollingComponen
   void set_optimistic(bool optimistic) { this->optimistic_ = optimistic; }
 
   void set_initial_value(ESPTime initial_value) { this->initial_value_ = initial_value; }
-  void set_restore_value(bool restore_value) { this->restore_value_ = restore_value; }
+  //void set_restore_value(bool restore_value) { this->restore_value_ = restore_value; }
 
  protected:
   void control(const datetime::DateTimeCall &call) override;

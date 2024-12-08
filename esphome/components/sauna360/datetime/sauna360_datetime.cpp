@@ -36,24 +36,6 @@ void SAUNA360DateTime::setup() {
   this->publish_state();
 }
 
-void SAUNA360DateTime::update() {
-  if (!this->f_.has_value())
-    return;
-
-  auto val = this->f_;
-  if (!val.has_value())
-    return;
-
-  ESP_LOGI("Datetime", "IM HERE UPDATE");
-  this->year_ = val->year;
-  this->month_ = val->month;
-  this->day_ = val->day_of_month;
-  this->hour_ = val->hour;
-  this->minute_ = val->minute;
-  this->second_ = val->second;
-  this->publish_state();
-}
-
 void SAUNA360DateTime::control(const datetime::DateTimeCall &call) {
   bool has_year = call.get_year().has_value();
   bool has_month = call.get_month().has_value();
@@ -139,7 +121,6 @@ void SAUNA360DateTime::control(const datetime::DateTimeCall &call) {
 void SAUNA360DateTime::dump_config() {
   LOG_DATETIME_DATETIME("", "Sauna360 DateTime", this);
   ESP_LOGCONFIG(TAG, "  Optimistic: %s", YESNO(this->optimistic_));
-  LOG_UPDATE_INTERVAL(this);
 }
 
 void SAUNA360NotAllowedStartFromTime::setup() {
