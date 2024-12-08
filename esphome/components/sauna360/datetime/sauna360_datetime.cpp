@@ -40,10 +40,11 @@ void SAUNA360DateTime::update() {
   if (!this->f_.has_value())
     return;
 
-  auto val = (*this->f_)();
+  auto val = this->f_;
   if (!val.has_value())
     return;
 
+  ESP_LOGI("Datetime", "IM HERE UPDATE");
   this->year_ = val->year;
   this->month_ = val->month;
   this->day_ = val->day_of_month;
