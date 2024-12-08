@@ -61,7 +61,9 @@ class SAUNA360Listener {
    virtual void on_relay_x13_x14_status(bool relay_x13_x14_status){};
    virtual void on_relay_x15_x16_status(bool relay_x15_x16_status){};
    virtual void on_relay_x17_x18_status(bool relay_x17_x18_status){};
-   virtual void set_datetime(ESPTime &f){};
+   virtual void on_datetime(ESPTime &f){};
+   virtual void on_not_allowed_start_from_time(ESPTime &f){};
+   virtual void on_not_allowed_start_until_time(ESPTime &f){};
 };
 
 class SAUNA360Component : public uart::UARTDevice, public Component {

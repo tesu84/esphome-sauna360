@@ -150,20 +150,6 @@ void SAUNA360NotAllowedStartFromTime::setup() {
   this->publish_state();
 }
 
-void SAUNA360NotAllowedStartFromTime::update() {
-  if (!this->f_.has_value())
-    return;
-
-  auto val = (*this->f_)();
-  if (!val.has_value())
-    return;
-
-  this->hour_ = val->hour;
-  this->minute_ = val->minute;
-  this->second_ = val->second;
-  this->publish_state();
-}
-
 void SAUNA360NotAllowedStartFromTime::control(const datetime::TimeCall &call) {
   bool has_hour = call.get_hour().has_value();
   bool has_minute = call.get_minute().has_value();
@@ -216,7 +202,6 @@ void SAUNA360NotAllowedStartFromTime::control(const datetime::TimeCall &call) {
 void SAUNA360NotAllowedStartFromTime::dump_config() {
   LOG_DATETIME_TIME("", "Template Time", this);
   ESP_LOGCONFIG(TAG, "  Optimistic: %s", YESNO(this->optimistic_));
-  LOG_UPDATE_INTERVAL(this);
 }
 
 void SAUNA360NotAllowedStartUntilTime::setup() {
@@ -243,20 +228,6 @@ void SAUNA360NotAllowedStartUntilTime::setup() {
   this->hour_ = state.hour;
   this->minute_ = state.minute;
   this->second_ = state.second;
-  this->publish_state();
-}
-
-void SAUNA360NotAllowedStartUntilTime::update() {
-  if (!this->f_.has_value())
-    return;
-
-  auto val = (*this->f_)();
-  if (!val.has_value())
-    return;
-
-  this->hour_ = val->hour;
-  this->minute_ = val->minute;
-  this->second_ = val->second;
   this->publish_state();
 }
 
@@ -312,7 +283,6 @@ void SAUNA360NotAllowedStartUntilTime::control(const datetime::TimeCall &call) {
 void SAUNA360NotAllowedStartUntilTime::dump_config() {
   LOG_DATETIME_TIME("", "Template Time", this);
   ESP_LOGCONFIG(TAG, "  Optimistic: %s", YESNO(this->optimistic_));
-  LOG_UPDATE_INTERVAL(this);
 }
 
 }  // namespace sauna360

@@ -13,8 +13,8 @@ from .. import (
 )
 
 SAUNA360DateTime = sauna360_ns.class_("SAUNA360DateTime", datetime.DateTimeEntity, cg.Component)
-SAUNA360NotAllowedStartFromTime = sauna360_ns.class_("SAUNA360NotAllowedStartFromTime", datetime.TimeEntity, cg.PollingComponent)
-SAUNA360NotAllowedStartUntilTime = sauna360_ns.class_("SAUNA360NotAllowedStartUntilTime", datetime.TimeEntity, cg.PollingComponent)
+SAUNA360NotAllowedStartFromTime = sauna360_ns.class_("SAUNA360NotAllowedStartFromTime", datetime.TimeEntity, cg.Component)
+SAUNA360NotAllowedStartUntilTime = sauna360_ns.class_("SAUNA360NotAllowedStartUntilTime", datetime.TimeEntity, cg.Component)
 
 CONF_NOT_ALLOWED_START_FROM = "not_allowed_start_from"
 CONF_NOT_ALLOWED_START_UNTIL = "not_allowed_start_until"

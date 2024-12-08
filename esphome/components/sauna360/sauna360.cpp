@@ -200,7 +200,6 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0x4200){
     ESPTime time;
-    time.second = 0;
     time.minute = ((data) & 0x3F);
     ESP_LOGCONFIG(TAG, "MINUTE %d", time.minute);
     time.hour = ((data >> 6) & 0x1F);
@@ -211,7 +210,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     ESP_LOGCONFIG(TAG, "MONTH %d", time.month);
     time.year = ((data >> 21) & 0x1F) +2000;
     ESP_LOGCONFIG(TAG, "YEAR %d", time.year);
-    for (auto &listener : listeners_) {listener->set_datetime(time);}
+    for (auto &listener : listeners_) {listener->on_datetime(time);}
   }
   else if (code == 0x5200){
     //Aux 0 Relay 6 (FAN) IN WE30
