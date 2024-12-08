@@ -132,6 +132,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_external_switching_mode(const std::string &state);
     void set_bath_type_priority(const std::string &state);
     void set_standby_enable(bool enable);
+    void set_datetime(ESPTime &time);
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};

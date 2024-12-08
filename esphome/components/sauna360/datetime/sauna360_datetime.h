@@ -14,7 +14,7 @@
 namespace esphome {
 namespace sauna360 {
 
-class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, public SAUNA360Listener {
+class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, public SAUNA360Listener, public Parented<SAUNA360Component> {
  public:
   void on_datetime(ESPTime &f) override { 
     this->f_ = f; 
@@ -31,6 +31,7 @@ class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, publ
     this->hour_ = val->hour;
     this->minute_ = val->minute;
     this->publish_state();
+    this->parent_->set_datetime(ESPTime &f);
   }
 
   void setup() override;
@@ -51,7 +52,7 @@ class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, publ
   bool restore_value_{false};
   Trigger<ESPTime> *set_trigger_ = new Trigger<ESPTime>();
   optional<ESPTime> f_;
-
+  datetime::DateTimeEntity *datetime_{nullptr};
   ESPPreferenceObject pref_;
 };
 

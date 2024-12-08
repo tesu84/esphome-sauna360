@@ -546,6 +546,11 @@ void SAUNA360Component::set_standby_enable(bool enable) {
   this->create_send_data_(0x07, 0x4004, data);
 }
 
+void SAUNA360Component::set_datetime(ESPTime &time) {
+  ESP_LOGCONFIG(TAG, "SENDING DATETIME");  
+}
+
+
 void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t data) {
   ESP_LOGCONFIG(TAG, "CREATING SEND DATA TYPE:%s CODE:%s DATA:%s", format_hex_pretty(type).c_str(), format_hex_pretty(code).c_str(), format_hex_pretty(data).c_str());
   std::vector<uint8_t> packet;
