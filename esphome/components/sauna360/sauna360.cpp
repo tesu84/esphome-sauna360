@@ -309,15 +309,20 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_water_level(value);}
   }
   else if (code == 0x9000){
-    //Not allowed start 00:00 - 23:59 (1440min)
-    //Enabled  from 00:00 Until 00:00  00.40.00.00
-    //Disabled from 00:00 Until 00:00  00.00.00.00
-    //Enabled  from 00:01 until 00:00  00.40.00.01
-    //Disabled from 00:01 until 00:00  00.00.00.01
-    //Enabled  from 00:00 until 00:01  00.40.08.00
-    //Disabled from 00:00 until 00:01  00.00.08.00
-    //Enabled  from 23:59 until 23:59  00.6F.DD.FB
-    //Disabled from 23:59 until 23:59  00.2F.DD.FB
+    if (((data >> 22) & 1)) {
+      ESP_LOGCONFIG(TAG, "Activate time limit ON");
+    }
+    else {
+      ESP_LOGCONFIG(TAG, "Activate time limit OFF");
+    }
+    ESPTime time_from;
+    time_from.minute = ((data) & 0x3F);
+    time_from.hour = ((data >> 6) & 0x1F);
+    ESP_LOGCONFIG(TAG, "FROM %d:%d", time_from.hour, time_from.minute);
+    ESPTime time_until;
+    time_until.minute = ((data >> 11) & 0x3F);
+    time_until.hour = ((data >> 17) & 0x1F);
+    ESP_LOGCONFIG(TAG, "UNTIL %d:%d", time_until.hour, time_until.minute);
   }
   else if (code == 0x9400){
     for (auto &listener : listeners_) {listener->on_total_uptime(data);}
