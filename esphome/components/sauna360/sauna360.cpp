@@ -6,6 +6,7 @@
 #include "esphome/components/number/number.h"
 #include "esphome/core/preferences.h"
 #include "esphome/core/automation.h"
+#include "esphome/core/time.h"
 #include "sauna360.h"
 
 
@@ -198,25 +199,19 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     ESP_LOGCONFIG(TAG, "external_switch_renew_bathtime %d", value);
   }
   else if (code == 0x4200){
-    int minutes = ((data) & 0x3F);
-    ESP_LOGCONFIG(TAG, "MINUTES %d", minutes);
-    int hours = ((data >> 6) & 0x1F);
-    ESP_LOGCONFIG(TAG, "HOURS %d", hours);
-    int day = (data >> 12) & 0x1F;
-    ESP_LOGCONFIG(TAG, "DAY %d", day);
-    int month = (data >> 17) & 0xF;
-    ESP_LOGCONFIG(TAG, "MONTH %d", month);
-    int year = (data >> 21) & 0x1F;
-    ESP_LOGCONFIG(TAG, "YEAR %d", year);
-    //DateTimeCall &set_datetime(2011,1,2,3,4,0);
-    //DateTimeCall->set_year(2011);
-    //auto call = datetime.make_call();
-    //call.set_date("2024-12-31 12:34:56");
-    //call.perform();
-    //auto call = datetime
-    std::string time_data = "2024-12-31 12:34:56";
-    std::string format_data = "%Y-%m-%d %H:%M:%S";
-    for (auto &listener : listeners_) {listener->set_datetime(strftime(time_data, format_data));}
+    ESPTime time;
+    time.second = 0;
+    time.minute = ((data) & 0x3F);
+    ESP_LOGCONFIG(TAG, "MINUTE %d", time.minute);
+    time.hour = ((data >> 6) & 0x1F);
+    ESP_LOGCONFIG(TAG, "HOUR %d", time.hour);
+    time.day_of_month = (data >> 12) & 0x1F;
+    ESP_LOGCONFIG(TAG, "DAY %d", time.day_of_month);
+    time.month = (data >> 17) & 0xF;
+    ESP_LOGCONFIG(TAG, "MONTH %d", time.month);
+    time.year = ((data >> 21) & 0x1F) +2000;
+    ESP_LOGCONFIG(TAG, "YEAR %d", time.year);
+    for (auto &listener : listeners_) {listener->set_datetime(time);}
   }
   else if (code == 0x5200){
     //Aux 0 Relay 6 (FAN) IN WE30
