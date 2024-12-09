@@ -31,7 +31,6 @@ class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, publ
     this->hour_ = val->hour;
     this->minute_ = val->minute;
     this->publish_state();
-    //this->parent_->set_datetime(ESPTime &f);
   }
 
   void setup() override;

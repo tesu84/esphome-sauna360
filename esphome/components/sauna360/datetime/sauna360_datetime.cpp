@@ -113,9 +113,9 @@ void SAUNA360DateTime::control(const datetime::DateTimeCall &call) {
     } else {
       temp.second = this->second_;
     }
-
     this->pref_.save(&temp);
   }
+  this->parent_->set_datetime(value);
 }
 
 void SAUNA360DateTime::dump_config() {

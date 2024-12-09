@@ -552,7 +552,20 @@ void SAUNA360Component::set_standby_enable(bool enable) {
 }
 
 void SAUNA360Component::set_datetime(ESPTime &time) {
-  ESP_LOGCONFIG(TAG, "SENDING DATETIME");  
+  ESP_LOGCONFIG(TAG, "SENDING DATETIME");
+  ESP_LOGI("main", "Value of my datetime: %04d-%02d-%02d %0d:%02d",
+         time.year, time.month, time.day_of_month,
+         time.hour, time.minute);
+    uint32_t data = (time.minute);
+    data |= ((uint32_t) time.hour << 6);
+    data |= (1 << 11);
+    data |= ((uint32_t) time.day_of_month << 12);
+    data |= ((uint32_t) time.month << 17);
+    data |= (((uint32_t) time.year -2000) << 21);
+    data |= (1 << 31);
+    ESP_LOGCONFIG(TAG, "DATA 0x%08X", data);
+    //this->create_send_data_(0x07, 0x4200, data);
+    //this->create_send_data_(0x08, 0x4200, data);
 }
 
 
@@ -570,10 +583,12 @@ void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t 
   packet.push_back(data_array[1]);
   packet.push_back(data_array[2]);
   packet.push_back(data_array[3]);
+  ESP_LOGCONFIG(TAG, "BEFORE CRC %s", format_hex_pretty(packet).c_str());
   uint16_t crc_calculated = crc16be(packet.data(), packet.size(), 0xffff, 0x90d9, false, false);
   std::array<uint8_t, 2> crc_array = decode_value(crc_calculated);
   packet.push_back(crc_array[0]);
   packet.push_back(crc_array[1]);
+  ESP_LOGCONFIG(TAG, "AFTER CRC %s", format_hex_pretty(packet).c_str());
   uint8_t eof = 0x9C;
   uint8_t eof_esc = 0x63;
   uint8_t sof = 0x98;
