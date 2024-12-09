@@ -55,7 +55,7 @@ class SAUNA360DateTime : public datetime::DateTimeEntity, public Component, publ
   ESPPreferenceObject pref_;
 };
 
-class SAUNA360NotAllowedStartFromTime : public datetime::TimeEntity, public Component, public SAUNA360Listener {
+class SAUNA360NotAllowedStartFromTime : public datetime::TimeEntity, public Component, public SAUNA360Listener, public Parented<SAUNA360Component> {
  public:
   void on_not_allowed_start_from_time(ESPTime &f) override { 
     this->f_ = f; 
@@ -93,7 +93,7 @@ class SAUNA360NotAllowedStartFromTime : public datetime::TimeEntity, public Comp
   ESPPreferenceObject pref_;
 };
 
-class SAUNA360NotAllowedStartUntilTime : public datetime::TimeEntity, public Component, public SAUNA360Listener {
+class SAUNA360NotAllowedStartUntilTime : public datetime::TimeEntity, public Component, public SAUNA360Listener, public Parented<SAUNA360Component> {
  public:
   void on_not_allowed_start_until_time(ESPTime &f) override { 
     this->f_ = f; 

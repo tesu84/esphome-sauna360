@@ -197,6 +197,7 @@ void SAUNA360NotAllowedStartFromTime::control(const datetime::TimeCall &call) {
 
     this->pref_.save(&temp);
   }
+  this->parent_->set_not_allowed_start_from_time(value);
 }
 
 void SAUNA360NotAllowedStartFromTime::dump_config() {
@@ -278,6 +279,7 @@ void SAUNA360NotAllowedStartUntilTime::control(const datetime::TimeCall &call) {
 
     this->pref_.save(&temp);
   }
+  this->parent_->set_not_allowed_start_until_time(value);
 }
 
 void SAUNA360NotAllowedStartUntilTime::dump_config() {

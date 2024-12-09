@@ -83,6 +83,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     SUB_SWITCH(aux1_relay)
     SUB_SWITCH(aux2_relay)
     SUB_SWITCH(standby_enable)
+    SUB_SWITCH(activate_time_limit)
   #endif
   #ifdef USE_SELECT
    SUB_SELECT(aux0_relay_mode)
@@ -132,7 +133,10 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_external_switching_mode(const std::string &state);
     void set_bath_type_priority(const std::string &state);
     void set_standby_enable(bool enable);
+    void set_activate_time_limit(bool enable);
     void set_datetime(ESPTime &time);
+    void set_not_allowed_start_from_time(ESPTime &time);
+    void set_not_allowed_start_until_time(ESPTime &time);
 
   protected:
     GPIOPin *flow_control_pin_{nullptr};
@@ -153,6 +157,9 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     uint32_t external_switch_renew_bathtime_received_hex_;
     uint32_t overheating_pcb_limit_received_hex_;
     uint32_t bath_type_priority_received_hex_;
+    uint32_t time_from_received_hex_;
+    uint32_t time_until_received_hex_;
+    uint32_t activate_time_limit_received_hex_;
     std::vector<SAUNA360Listener *> listeners_{};
     float bath_time_default_{NAN};
     float bath_temperature_default_{NAN};

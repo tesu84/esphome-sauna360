@@ -1,4 +1,3 @@
-from esphome import automation
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import datetime
@@ -45,6 +44,8 @@ CONFIG_SCHEMA = datetime.datetime_schema(SAUNA360DateTime).extend(
 
 async def to_code(config):
     var = await datetime.new_datetime(config)
+    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
+    await cg.register_parented(var, config[CONF_SAUNA360_ID])
     await cg.register_component(var, config)
     if CONF_NOT_ALLOWED_START_FROM in config:
         time_struct = cg.StructInitializer(
@@ -54,6 +55,7 @@ async def to_code(config):
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_FROM])
         cg.add(time_var.set_initial_value(time_struct))
+        cg.add(sauna360.register_listener(time_var))
     if CONF_NOT_ALLOWED_START_UNTIL in config:
         time_struct = cg.StructInitializer(
             cg.ESPTime,
@@ -62,5 +64,5 @@ async def to_code(config):
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_UNTIL])
         cg.add(time_var.set_initial_value(time_struct))
-    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
+        cg.add(sauna360.register_listener(time_var))
     cg.add(sauna360.register_listener(var))

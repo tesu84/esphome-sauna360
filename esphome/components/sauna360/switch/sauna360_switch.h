@@ -43,5 +43,13 @@ class SAUNA360StandbyEnableSwitch : public switch_::Switch, public Parented<SAUN
   void write_state(bool state) override;
 };
 
+class SAUNA360ActivateTimeLimitSwitch : public switch_::Switch, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360ActivateTimeLimitSwitch() = default;
+
+ protected:
+  void write_state(bool state) override;
+};
+
 }  // namespace sauna360
 }  // namespace esphome

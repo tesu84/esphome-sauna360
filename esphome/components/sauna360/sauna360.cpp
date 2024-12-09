@@ -309,19 +309,19 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_water_level(value);}
   }
   else if (code == 0x9000){
-    if (((data >> 22) & 1)) {
-      ESP_LOGCONFIG(TAG, "Activate time limit ON");
-    }
-    else {
-      ESP_LOGCONFIG(TAG, "Activate time limit OFF");
-    }
+    this->activate_time_limit_switch_->publish_state((data >> 22) & 1);
+    this->activate_time_limit_received_hex_ = (data & 0x400000);
     ESPTime time_from;
     time_from.minute = ((data) & 0x3F);
     time_from.hour = ((data >> 6) & 0x1F);
+    for (auto &listener : listeners_) {listener-> on_not_allowed_start_from_time(time_from);}
+    this->time_from_received_hex_ = (data & 0x00007FF);
     ESP_LOGCONFIG(TAG, "FROM %d:%d", time_from.hour, time_from.minute);
     ESPTime time_until;
     time_until.minute = ((data >> 11) & 0x3F);
     time_until.hour = ((data >> 17) & 0x1F);
+    for (auto &listener : listeners_) {listener-> on_not_allowed_start_until_time(time_until);}
+    this->time_until_received_hex_ = ((data >> 11) & 0x00007FF);
     ESP_LOGCONFIG(TAG, "UNTIL %d:%d", time_until.hour, time_until.minute);
   }
   else if (code == 0x9400){
@@ -552,10 +552,6 @@ void SAUNA360Component::set_standby_enable(bool enable) {
 }
 
 void SAUNA360Component::set_datetime(ESPTime &time) {
-  ESP_LOGCONFIG(TAG, "SENDING DATETIME");
-  ESP_LOGI("main", "Value of my datetime: %04d-%02d-%02d %0d:%02d",
-         time.year, time.month, time.day_of_month,
-         time.hour, time.minute);
     uint32_t data = (time.minute);
     data |= ((uint32_t) time.hour << 6);
     data |= (1 << 11);
@@ -563,11 +559,26 @@ void SAUNA360Component::set_datetime(ESPTime &time) {
     data |= ((uint32_t) time.month << 17);
     data |= (((uint32_t) time.year -2000) << 21);
     data |= (1 << 31);
-    ESP_LOGCONFIG(TAG, "DATA 0x%08X", data);
-    //this->create_send_data_(0x07, 0x4200, data);
-    //this->create_send_data_(0x08, 0x4200, data);
+    this->create_send_data_(0x07, 0x4200, data);
 }
 
+void SAUNA360Component::set_not_allowed_start_from_time(ESPTime &time) {
+    ESP_LOGCONFIG(TAG, "SET FROM");
+    //this->create_send_data_(0x07, 0x9000, data);
+}
+
+void SAUNA360Component::set_not_allowed_start_until_time(ESPTime &time) {
+    ESP_LOGCONFIG(TAG, "SET UNTIL");
+    //this->create_send_data_(0x07, 0x9000, data);
+}
+
+void SAUNA360Component::set_activate_time_limit(bool enable) {
+  uint32_t data = (enable) ? (1 << 22) : (0 << 22);
+  data |= this->time_from_received_hex_;
+  data |= (this->time_until_received_hex_ << 11);
+  ESP_LOGCONFIG(TAG, "SET ACTIVATE TIME LIMIT");
+  this->create_send_data_(0x07, 0x9000, data);
+}
 
 void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t data) {
   ESP_LOGCONFIG(TAG, "CREATING SEND DATA TYPE:%s CODE:%s DATA:%s", format_hex_pretty(type).c_str(), format_hex_pretty(code).c_str(), format_hex_pretty(data).c_str());

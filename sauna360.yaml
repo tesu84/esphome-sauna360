@@ -25,7 +25,7 @@ esp32:
 logger:
   level: DEBUG
   # disable putting logging on the HW uart
-  baud_rate: 0
+  #baud_rate: 0
 
 # Enable Home Assistant API
 api:
@@ -205,6 +205,9 @@ switch:
 - platform: sauna360
   standby_enable:
     name: "Switch Standby Enable"
+- platform: sauna360
+  activate_time_limit:
+    name: "Activate Time Limit"
 
 select:
 - platform: sauna360
