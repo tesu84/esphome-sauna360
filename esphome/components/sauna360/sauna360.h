@@ -157,9 +157,9 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     uint32_t external_switch_renew_bathtime_received_hex_;
     uint32_t overheating_pcb_limit_received_hex_;
     uint32_t bath_type_priority_received_hex_;
-    uint32_t time_from_received_hex_;
-    uint32_t time_until_received_hex_;
-    uint32_t activate_time_limit_received_hex_;
+    ESPTime time_limit_from_;
+    ESPTime time_limit_until_;
+    bool activate_time_limit_;
     std::vector<SAUNA360Listener *> listeners_{};
     float bath_time_default_{NAN};
     float bath_temperature_default_{NAN};

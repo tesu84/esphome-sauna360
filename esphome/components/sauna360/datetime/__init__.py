@@ -44,9 +44,9 @@ CONFIG_SCHEMA = datetime.datetime_schema(SAUNA360DateTime).extend(
 
 async def to_code(config):
     var = await datetime.new_datetime(config)
-    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     await cg.register_parented(var, config[CONF_SAUNA360_ID])
     await cg.register_component(var, config)
+    sauna360 = await cg.get_variable(config[CONF_SAUNA360_ID])
     if CONF_NOT_ALLOWED_START_FROM in config:
         time_struct = cg.StructInitializer(
             cg.ESPTime,
@@ -54,6 +54,7 @@ async def to_code(config):
             ("hour", 0),
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_FROM])
+        await cg.register_parented(time_var, config[CONF_SAUNA360_ID])
         cg.add(time_var.set_initial_value(time_struct))
         cg.add(sauna360.register_listener(time_var))
     if CONF_NOT_ALLOWED_START_UNTIL in config:
@@ -63,6 +64,7 @@ async def to_code(config):
             ("hour", 0),
         )
         time_var = await datetime.new_datetime(config[CONF_NOT_ALLOWED_START_UNTIL])
+        await cg.register_parented(time_var, config[CONF_SAUNA360_ID])
         cg.add(time_var.set_initial_value(time_struct))
         cg.add(sauna360.register_listener(time_var))
     cg.add(sauna360.register_listener(var))
