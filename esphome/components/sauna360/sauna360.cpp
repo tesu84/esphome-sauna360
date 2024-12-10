@@ -274,6 +274,10 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0x7000){
     //command acknowledge
+    if ((data == 0x00400000)){
+      std::string value = "Operation blocked by not allowed start";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+    }
   }
   else if (code == 0x7180) {
     for (auto &listener : listeners_) {listener->on_relay_x3_x4_status((data >> 0) & 1);}
@@ -332,6 +336,11 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0xB000){
     for (auto &listener : listeners_) {listener->on_ready_status((data) & 1);}
+    if (data == 0x00060001){
+      std::string value = "Operation blocked by not allowed start";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+      this->create_send_data_(0x07, 0xB000, 0x00060101);
+    }
   }
   else {
     ESP_LOGCONFIG(TAG, "^^^^^^^^^^^^^^^^^^^^^^^ PACKET NOT HANDLED YET ");
@@ -568,7 +577,6 @@ void SAUNA360Component::set_not_allowed_start_from_time(ESPTime &time) {
   data |= ((uint32_t) this->time_limit_until_.minute << 11);
   data |= ((uint32_t) this->time_limit_until_.hour << 17);
   data |= (this->activate_time_limit_) ? (1 << 22) : (0 << 22);
-  ESP_LOGCONFIG(TAG, "SET ACTIVATE TIME LIMIT %s", format_hex_pretty(data).c_str());
   this->create_send_data_(0x07, 0x9000, data);
 }
 
@@ -578,7 +586,6 @@ void SAUNA360Component::set_not_allowed_start_until_time(ESPTime &time) {
   data |= ((uint32_t) time.minute << 11);
   data |= ((uint32_t) time.hour << 17);
   data |= (this->activate_time_limit_) ? (1 << 22) : (0 << 22);
-  ESP_LOGCONFIG(TAG, "SET UNTIL %s", format_hex_pretty(data).c_str());
   this->create_send_data_(0x07, 0x9000, data);
 }
 
@@ -588,7 +595,6 @@ void SAUNA360Component::set_activate_time_limit(bool enable) {
   data |= ((uint32_t) this->time_limit_until_.minute << 11);
   data |= ((uint32_t) this->time_limit_until_.hour << 17);
   data |= (enable) ? (1 << 22) : (0 << 22);
-  ESP_LOGCONFIG(TAG, "SET ACTIVATE TIME LIMIT %s", format_hex_pretty(data).c_str());
   this->create_send_data_(0x07, 0x9000, data);
 }
 

@@ -208,6 +208,8 @@ switch:
 - platform: sauna360
   activate_time_limit:
     name: "Activate Time Limit"
+    web_server:
+      sorting_weight: -1
 
 select:
 - platform: sauna360
