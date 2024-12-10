@@ -213,34 +213,91 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_datetime(time);}
   }
   else if (code == 0x5200){
-    //Aux 0 Relay 6 (FAN) IN WE30
-    //Options:
-    //Not in use 80.00.A4.B0
-    //On/off     C0.00.A4.B0
-    //Fragrance  D0.00.A4.B0
-    //data:
-    //On  E0.00.A4.B0
-    //Off C0.00.A4.B0
+    int mode = data >> 28;
+    if (mode == 0x8) { // 1000
+      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE");
+    }
+    if (mode == 0xA) { // 1010
+      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE, (ON)/OFF");
+    }
+    if (mode == 0xB) { // 1011
+      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE, FRAGRANCE (ON)/OFF");
+    }
+    if (mode == 0xC) { // 1100
+      ESP_LOGCONFIG(TAG, "AUX0 ON/(OFF)");
+    }
+    if (mode == 0xD) { // 1101
+      ESP_LOGCONFIG(TAG, "AUX0 FRAGRANCE ON/(OFF)");
+    }
+    if (mode == 0xE) { // 1110
+      ESP_LOGCONFIG(TAG, "AUX0 (ON)/OFF");
+    }
+    if (mode == 0xF) { // 1111
+      ESP_LOGCONFIG(TAG, "AUX0 FRAGRANCE (ON)/OFF");
+    }
+    uint32_t stop =  (data & 0x0001FFF);
+    ESP_LOGCONFIG(TAG, "AUX0 STOP %ds 1..7200s 1s..2h", stop);
+    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    uint32_t pump =  (data >> 15 & 0x00007FF);
+    ESP_LOGCONFIG(TAG, "AUX0 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
   }
   else if (code == 0x5201){
-    //Aux 1 Relay 7
-    //Options:
-    //Not in use 80.00.A4.B0
-    //On/off     C0.00.A4.B0
-    //Fragrance  D0.00.A4.B0
-    //data:
-    //On  E0.00.A4.B0
-    //Off C0.00.A4.B0
+    int mode = data >> 28;
+    if (mode == 0x8) { // 1000
+      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE");
+    }
+    if (mode == 0xA) { // 1010
+      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE, (ON)/OFF");
+    }
+    if (mode == 0xB) { // 1011
+      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE, FRAGRANCE (ON)/OFF");
+    }
+    if (mode == 0xC) { // 1100
+      ESP_LOGCONFIG(TAG, "AUX1 ON/(OFF)");
+    }
+    if (mode == 0xD) { // 1101
+      ESP_LOGCONFIG(TAG, "AUX1 FRAGRANCE ON/(OFF)");
+    }
+    if (mode == 0xE) { // 1110
+      ESP_LOGCONFIG(TAG, "AUX1 (ON)/OFF");
+    }
+    if (mode == 0xF) { // 1111
+      ESP_LOGCONFIG(TAG, "AUX1 FRAGRANCE (ON)/OFF");
+    }
+    uint32_t stop =  (data & 0x0001FFF);
+    ESP_LOGCONFIG(TAG, "AUX1 STOP %ds 1..7200s 1s..2h", stop);
+    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    uint32_t pump =  (data >> 15 & 0x00007FF);
+    ESP_LOGCONFIG(TAG, "AUX1 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
   }
   else if (code == 0x5202){
-    //Aux 2
-    //Options:
-    //Not in use 80.00.A4.B0
-    //On/off     C0.00.A4.B0
-    //Fragrance  D0.00.A4.B0
-    //data:
-    //On  E0.00.A4.B0
-    //Off C0.00.A4.B0
+    int mode = data >> 28;
+    if (mode == 0x8) { // 1000
+      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE");
+    }
+    if (mode == 0xA) { // 1010
+      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE, (ON)/OFF");
+    }
+    if (mode == 0xB) { // 1011
+      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE, FRAGRANCE (ON)/OFF");
+    }
+    if (mode == 0xC) { // 1100
+      ESP_LOGCONFIG(TAG, "AUX2 ON/(OFF)");
+    }
+    if (mode == 0xD) { // 1101
+      ESP_LOGCONFIG(TAG, "AUX2 FRAGRANCE ON/(OFF)");
+    }
+    if (mode == 0xE) { // 1110
+      ESP_LOGCONFIG(TAG, "AUX2 (ON)/OFF");
+    }
+    if (mode == 0xF) { // 1111
+      ESP_LOGCONFIG(TAG, "AUX2 FRAGRANCE (ON)/OFF");
+    }
+    uint32_t stop =  (data & 0x0001FFF);
+    ESP_LOGCONFIG(TAG, "AUX2 STOP %ds 1..7200s 1s..2h", stop);
+    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    uint32_t pump =  (data >> 15 & 0x00007FF);
+    ESP_LOGCONFIG(TAG, "AUX2 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
   }
   else if (code == 0x6000){
     int actual_temp = (data & 0x00007FF) / 9.0;
