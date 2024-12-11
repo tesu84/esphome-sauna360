@@ -76,6 +76,12 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     SUB_NUMBER(max_bath_temperature)
     SUB_NUMBER(overheating_pcb_limit)
     SUB_NUMBER(external_switch_renew_bathtime)
+    SUB_NUMBER(aux0_fragrance_pump)
+    SUB_NUMBER(aux0_fragrance_stop)
+    SUB_NUMBER(aux1_fragrance_pump)
+    SUB_NUMBER(aux1_fragrance_stop)
+    SUB_NUMBER(aux2_fragrance_pump)
+    SUB_NUMBER(aux2_fragrance_stop)
   #endif
   #ifdef USE_SWITCH
     SUB_SWITCH(light_relay)
@@ -122,6 +128,18 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_overheating_pcb_limit_default_value(float overheating_pcb_limit_default) { overheating_pcb_limit_default_ = overheating_pcb_limit_default; }
     void set_external_switch_renew_bathtime_number(float value);
     void set_external_switch_renew_bathtime_default_value(float external_switch_renew_bathtime_default) { external_switch_renew_bathtime_default_ = external_switch_renew_bathtime_default; }
+    void set_aux0_fragrance_pump_number(float value);
+    void set_aux0_fragrance_pump_default_value(float aux0_fragrance_pump_default) { aux0_fragrance_pump_default_ = aux0_fragrance_pump_default; }
+    void set_aux0_fragrance_stop_number(float value);
+    void set_aux0_fragrance_stop_default_value(float aux0_fragrance_stop_default) { aux0_fragrance_stop_default_ = aux0_fragrance_stop_default; }
+    void set_aux1_fragrance_pump_number(float value);
+    void set_aux1_fragrance_pump_default_value(float aux1_fragrance_pump_default) { aux1_fragrance_pump_default_ = aux1_fragrance_pump_default; }
+    void set_aux1_fragrance_stop_number(float value);
+    void set_aux1_fragrance_stop_default_value(float aux1_fragrance_stop_default) { aux1_fragrance_stop_default_ = aux1_fragrance_stop_default; }
+    void set_aux2_fragrance_pump_number(float value);
+    void set_aux2_fragrance_pump_default_value(float aux2_fragrance_pump_default) { aux2_fragrance_pump_default_ = aux2_fragrance_pump_default; }
+    void set_aux2_fragrance_stop_number(float value);
+    void set_aux2_fragrance_stop_default_value(float aux2_fragrance_stop_default) { aux2_fragrance_stop_default_ = aux2_fragrance_stop_default; }
     void set_flow_control_pin(GPIOPin *flow_control_pin) { this->flow_control_pin_ = flow_control_pin; }
     void set_light_relay(bool enable);
     void set_aux0_relay(bool enable);
@@ -160,6 +178,9 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     ESPTime time_limit_from_;
     ESPTime time_limit_until_;
     bool activate_time_limit_;
+    uint32_t aux0_mode_;
+    uint32_t aux1_mode_;
+    uint32_t aux2_mode_;
     std::vector<SAUNA360Listener *> listeners_{};
     float bath_time_default_{NAN};
     float bath_temperature_default_{NAN};
@@ -168,6 +189,12 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     float max_bath_temperature_default_{NAN};
     float overheating_pcb_limit_default_{NAN};
     float external_switch_renew_bathtime_default_{NAN};
+    float aux0_fragrance_pump_default_{NAN};
+    float aux0_fragrance_stop_default_{NAN};
+    float aux1_fragrance_pump_default_{NAN};
+    float aux1_fragrance_stop_default_{NAN};
+    float aux2_fragrance_pump_default_{NAN};
+    float aux2_fragrance_stop_default_{NAN};
 };
 
 

@@ -188,6 +188,36 @@ number:
     name: "Number External Switch Renew Bath Time"
     mode: box # box / slider
     external_switch_renew_bathtime_default: 90 #1-360min
+- platform: sauna360
+  aux0_fragrance_pump:
+    name: "Number Aux0 Fragrance Pump"
+    mode: box # box / slider
+    aux0_fragrance_pump_default: 10 #1-1200*100ms 10=1s
+- platform: sauna360
+  aux0_fragrance_stop:
+    name: "Number Aux0 Fragrance Stop"
+    mode: box # box / slider
+    aux0_fragrance_stop_default: 10 #1-7200s
+- platform: sauna360
+  aux1_fragrance_pump:
+    name: "Number Aux1 Fragrance Pump"
+    mode: box # box / slider
+    aux1_fragrance_pump_default: 10 #1-1200*100ms 10=1s
+- platform: sauna360
+  aux1_fragrance_stop:
+    name: "Number Aux1 Fragrance Stop"
+    mode: box # box / slider
+    aux1_fragrance_stop_default: 10 #1-7200s
+- platform: sauna360
+  aux2_fragrance_pump:
+    name: "Number Aux2 Fragrance Pump"
+    mode: box # box / slider
+    aux2_fragrance_pump_default: 10 #1-1200*100ms 10=1s
+- platform: sauna360
+  aux2_fragrance_stop:
+    name: "Number Aux2 Fragrance Stop"
+    mode: box # box / slider
+    aux2_fragrance_stop_default: 10 #1-7200s
 
 switch:
 - platform: sauna360
@@ -213,13 +243,13 @@ switch:
 
 select:
 - platform: sauna360
-  relay_aux0_mode: #not implemented
+  relay_aux0_mode:
     name: "Select Relay Aux0 Mode"
 - platform: sauna360
-  relay_aux1_mode: #not implemented
+  relay_aux1_mode:
     name: "Select Relay Aux1 Mode"
 - platform: sauna360
-  relay_aux2_mode: #not implemented
+  relay_aux2_mode:
     name: "Select Relay Aux2 Mode"
 - platform: sauna360
   external_switching_mode:

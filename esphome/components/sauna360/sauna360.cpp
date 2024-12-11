@@ -41,6 +41,33 @@ void SAUNA360Component::setup() {
   if (!std::isnan(this->external_switch_renew_bathtime_default_)) {
     this->set_external_switch_renew_bathtime_number(external_switch_renew_bathtime_default_);
   }
+  if (!std::isnan(this->aux0_fragrance_pump_default_)) {
+    this->set_aux0_fragrance_pump_number(aux0_fragrance_pump_default_);
+  }
+  if (!std::isnan(this->aux0_fragrance_stop_default_)) {
+    this->set_aux0_fragrance_stop_number(aux0_fragrance_stop_default_);
+  }
+  if (!std::isnan(this->aux1_fragrance_pump_default_)) {
+    this->set_aux1_fragrance_pump_number(aux1_fragrance_pump_default_);
+  }
+  if (!std::isnan(this->aux1_fragrance_stop_default_)) {
+    this->set_aux1_fragrance_stop_number(aux1_fragrance_stop_default_);
+  }
+  if (!std::isnan(this->aux2_fragrance_pump_default_)) {
+    this->set_aux2_fragrance_pump_number(aux2_fragrance_pump_default_);
+  }
+  if (!std::isnan(this->aux2_fragrance_stop_default_)) {
+    this->set_aux2_fragrance_stop_number(aux2_fragrance_stop_default_);
+  }
+  if (!this->aux0_mode_) {
+    this->aux0_mode_ = 0x80000000;
+  }
+  if (!this->aux1_mode_) {
+    this->aux1_mode_ = 0x80000000;
+  }
+  if (!this->aux2_mode_) {
+    this->aux2_mode_ = 0x80000000;
+  }
 }
 
 void SAUNA360Component::loop() {
@@ -201,103 +228,77 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   else if (code == 0x4200){
     ESPTime time;
     time.minute = ((data) & 0x3F);
-    ESP_LOGCONFIG(TAG, "MINUTE %d", time.minute);
     time.hour = ((data >> 6) & 0x1F);
-    ESP_LOGCONFIG(TAG, "HOUR %d", time.hour);
     time.day_of_month = (data >> 12) & 0x1F;
-    ESP_LOGCONFIG(TAG, "DAY %d", time.day_of_month);
     time.month = (data >> 17) & 0xF;
-    ESP_LOGCONFIG(TAG, "MONTH %d", time.month);
     time.year = ((data >> 21) & 0x1F) +2000;
-    ESP_LOGCONFIG(TAG, "YEAR %d", time.year);
     for (auto &listener : listeners_) {listener->on_datetime(time);}
   }
-  else if (code == 0x5200){
-    int mode = data >> 28;
-    if (mode == 0x8) { // 1000
-      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE");
+  else if (code == 0x5200){ // Relay X15-X16
+    this->aux0_mode_ = data & 0xF0000000;
+    if (((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux0_relay_mode_select_->publish_state("Fragrance");
     }
-    if (mode == 0xA) { // 1010
-      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE, (ON)/OFF");
+    if (!((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux0_relay_mode_select_->publish_state("On/Off");
     }
-    if (mode == 0xB) { // 1011
-      ESP_LOGCONFIG(TAG, "AUX0 NOT IN USE, FRAGRANCE (ON)/OFF");
+    if (!((data >> 30) &1)) {
+      this->aux0_relay_mode_select_->publish_state("Not in use");
     }
-    if (mode == 0xC) { // 1100
-      ESP_LOGCONFIG(TAG, "AUX0 ON/(OFF)");
+    if ((data >> 29) &1) {
+      this->aux0_relay_switch_->publish_state(true);
     }
-    if (mode == 0xD) { // 1101
-      ESP_LOGCONFIG(TAG, "AUX0 FRAGRANCE ON/(OFF)");
-    }
-    if (mode == 0xE) { // 1110
-      ESP_LOGCONFIG(TAG, "AUX0 (ON)/OFF");
-    }
-    if (mode == 0xF) { // 1111
-      ESP_LOGCONFIG(TAG, "AUX0 FRAGRANCE (ON)/OFF");
+    else {
+      this->aux0_relay_switch_->publish_state(false);
     }
     uint32_t stop =  (data & 0x0001FFF);
-    ESP_LOGCONFIG(TAG, "AUX0 STOP %ds 1..7200s 1s..2h", stop);
-    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    this->aux0_fragrance_stop_number_->publish_state(stop);
     uint32_t pump =  (data >> 15 & 0x00007FF);
-    ESP_LOGCONFIG(TAG, "AUX0 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
+    this->aux0_fragrance_pump_number_->publish_state(pump);
   }
-  else if (code == 0x5201){
-    int mode = data >> 28;
-    if (mode == 0x8) { // 1000
-      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE");
+  else if (code == 0x5201){ // Relay X11-X12
+    this->aux1_mode_ = data & 0xF0000000;
+    if (((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux1_relay_mode_select_->publish_state("Fragrance");
     }
-    if (mode == 0xA) { // 1010
-      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE, (ON)/OFF");
+    if (!((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux1_relay_mode_select_->publish_state("On/Off");
     }
-    if (mode == 0xB) { // 1011
-      ESP_LOGCONFIG(TAG, "AUX1 NOT IN USE, FRAGRANCE (ON)/OFF");
+    if (!((data >> 30) &1)) {
+      this->aux1_relay_mode_select_->publish_state("Not in use");
     }
-    if (mode == 0xC) { // 1100
-      ESP_LOGCONFIG(TAG, "AUX1 ON/(OFF)");
+    if ((data >> 29) &1) {
+      this->aux1_relay_switch_->publish_state(true);
     }
-    if (mode == 0xD) { // 1101
-      ESP_LOGCONFIG(TAG, "AUX1 FRAGRANCE ON/(OFF)");
-    }
-    if (mode == 0xE) { // 1110
-      ESP_LOGCONFIG(TAG, "AUX1 (ON)/OFF");
-    }
-    if (mode == 0xF) { // 1111
-      ESP_LOGCONFIG(TAG, "AUX1 FRAGRANCE (ON)/OFF");
+    else {
+      this->aux1_relay_switch_->publish_state(false);
     }
     uint32_t stop =  (data & 0x0001FFF);
-    ESP_LOGCONFIG(TAG, "AUX1 STOP %ds 1..7200s 1s..2h", stop);
-    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    this->aux1_fragrance_stop_number_->publish_state(stop);
     uint32_t pump =  (data >> 15 & 0x00007FF);
-    ESP_LOGCONFIG(TAG, "AUX1 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
+    this->aux1_fragrance_pump_number_->publish_state(pump);
   }
   else if (code == 0x5202){
-    int mode = data >> 28;
-    if (mode == 0x8) { // 1000
-      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE");
+    this->aux2_mode_ = data & 0xF0000000;
+    if (((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux2_relay_mode_select_->publish_state("Fragrance");
     }
-    if (mode == 0xA) { // 1010
-      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE, (ON)/OFF");
+    if (!((data >> 28) &1) && ((data >> 30) &1)) {
+      this->aux2_relay_mode_select_->publish_state("On/Off");
     }
-    if (mode == 0xB) { // 1011
-      ESP_LOGCONFIG(TAG, "AUX2 NOT IN USE, FRAGRANCE (ON)/OFF");
+    if (!((data >> 30) &1)) {
+      this->aux2_relay_mode_select_->publish_state("Not in use");
     }
-    if (mode == 0xC) { // 1100
-      ESP_LOGCONFIG(TAG, "AUX2 ON/(OFF)");
+    if ((data >> 29) &1) {
+      this->aux2_relay_switch_->publish_state(true);
     }
-    if (mode == 0xD) { // 1101
-      ESP_LOGCONFIG(TAG, "AUX2 FRAGRANCE ON/(OFF)");
-    }
-    if (mode == 0xE) { // 1110
-      ESP_LOGCONFIG(TAG, "AUX2 (ON)/OFF");
-    }
-    if (mode == 0xF) { // 1111
-      ESP_LOGCONFIG(TAG, "AUX2 FRAGRANCE (ON)/OFF");
+    else {
+      this->aux2_relay_switch_->publish_state(false);
     }
     uint32_t stop =  (data & 0x0001FFF);
-    ESP_LOGCONFIG(TAG, "AUX2 STOP %ds 1..7200s 1s..2h", stop);
-    // bit13 = 0 bit14 = 1 Mystery bits, remember to add in send
+    this->aux2_fragrance_stop_number_->publish_state(stop);
     uint32_t pump =  (data >> 15 & 0x00007FF);
-    ESP_LOGCONFIG(TAG, "AUX2 PUMP %dx 100ms 1..1200ms 100ms..2min", pump);
+    this->aux2_fragrance_pump_number_->publish_state(pump);
   }
   else if (code == 0x6000){
     int actual_temp = (data & 0x00007FF) / 9.0;
@@ -331,10 +332,6 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   else if (code == 0x7000){
     //command acknowledge
-    if ((data == 0x00400000)){
-      std::string value = "Operation blocked by not allowed start";
-      for (auto &listener : listeners_) {listener->on_heater_state(value);}
-    }
   }
   else if (code == 0x7180) {
     for (auto &listener : listeners_) {listener->on_relay_x3_x4_status((data >> 0) & 1);}
@@ -346,9 +343,6 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_relay_x15_x16_status((data >> 6) & 1);}
     for (auto &listener : listeners_) {listener->on_relay_x17_x18_status((data >> 7) & 1);}
     this->light_relay_switch_->publish_state((data >> 5) & 1);
-    this->aux0_relay_switch_->publish_state((data >> 6) & 1);
-    this->aux1_relay_switch_->publish_state((data >> 4) & 1);
-    this->aux2_relay_switch_->publish_state((data >> 3) & 1);
   }
   else if (code == 0x7280){
     std::string value;
@@ -397,6 +391,16 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
       std::string value = "Operation blocked by not allowed start";
       for (auto &listener : listeners_) {listener->on_heater_state(value);}
       this->create_send_data_(0x07, 0xB000, 0x00060101);
+    }
+    if (data == 0x00130001){
+      std::string value = "Operation blocked by not allowed start";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+      this->create_send_data_(0x07, 0xB000, 0x00130101);
+    }
+    if (data == 0x00130003){
+      std::string value = "Door opened too long, bath cancelled";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+      this->create_send_data_(0x07, 0xB000, 0x00130103);
     }
   }
   else {
@@ -494,12 +498,81 @@ void SAUNA360Component::set_external_switch_renew_bathtime_number(float value) {
   this->create_send_data_(0x07, 0x4004, data);
 }
 
+void SAUNA360Component::set_aux0_fragrance_pump_number(float value) {
+  uint32_t data = this->aux0_mode_;
+  data |= ((uint32_t) this->aux0_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) value << 15);
+  this->create_send_data_(0x07, 0x5200, data);
+}
+
+void SAUNA360Component::set_aux0_fragrance_stop_number(float value) {
+  uint32_t data = this->aux0_mode_;
+  data |= ((uint32_t) value);
+  data |= (1 << 13);
+  if (this->aux0_fragrance_pump_number_->has_state()) {
+    data |= ((uint32_t) this->aux0_fragrance_pump_number_->state << 15);
+  }
+  else {
+    data |= ((uint32_t) this->aux0_fragrance_pump_default_ << 15);
+  }
+  this->create_send_data_(0x07, 0x5200, data);
+}
+
+void SAUNA360Component::set_aux1_fragrance_pump_number(float value) {
+  uint32_t data = this->aux1_mode_;
+  data |= ((uint32_t) this->aux1_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) value << 15);
+  this->create_send_data_(0x07, 0x5201, data);
+}
+
+void SAUNA360Component::set_aux1_fragrance_stop_number(float value) {
+  uint32_t data = this->aux1_mode_;
+  data |= ((uint32_t) value);
+  data |= (1 << 13);
+  if (this->aux1_fragrance_pump_number_->has_state()) {
+    data |= ((uint32_t) this->aux1_fragrance_pump_number_->state << 15);
+  }
+  else {
+    data |= ((uint32_t) this->aux1_fragrance_pump_default_ << 15);
+  }
+  this->create_send_data_(0x07, 0x5201, data);
+}
+
+void SAUNA360Component::set_aux2_fragrance_pump_number(float value) {
+  uint32_t data = this->aux2_mode_;
+  data |= ((uint32_t) this->aux2_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) value << 15);
+  this->create_send_data_(0x07, 0x5202, data);
+}
+
+void SAUNA360Component::set_aux2_fragrance_stop_number(float value) {
+  uint32_t data = this->aux2_mode_;
+  data |= ((uint32_t) value);
+  data |= (1 << 13);
+  if (this->aux2_fragrance_pump_number_->has_state()) {
+    data |= ((uint32_t) this->aux2_fragrance_pump_number_->state << 15);
+  }
+  else {
+    data |= ((uint32_t) this->aux2_fragrance_pump_default_ << 15);
+  }
+  this->create_send_data_(0x07, 0x5202, data);
+}
+
 void SAUNA360Component::set_light_relay(bool enable) {
   this->create_send_data_(0x07, 0x7000, 0x2);
 }
 
 void SAUNA360Component::set_aux0_relay(bool enable) {
-  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
+  uint32_t data = this->aux0_mode_;
+  data = data & 0xDFFFFFFF;
+  data |= (enable) ? (1 << 29) : (0 << 29);
+  data |= ((uint32_t) this->aux0_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux0_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
   this->create_send_data_(0x07, 0x5200, data);
 }
 
@@ -508,7 +581,7 @@ void SAUNA360Component::set_aux0_relay_mode(const std::string &state) {
   auto index = this->aux0_relay_mode_select_->active_index();
   switch (index.value()) {
     case 0: //Not in use
-      data = 0x8000000;
+      data = 0x80000000;
       break;
     case 1: //On/Off 
       data = 0xC0000000;
@@ -516,13 +589,23 @@ void SAUNA360Component::set_aux0_relay_mode(const std::string &state) {
     case 2: //Fragrance 
       data = 0xD0000000;
       break;
-    //pump 100ms...2min
-    //stop 1s...2h
-    // 0x5000A001 pump 100ms stop 1s
-    // 0x52583C20 pump 2min 2h
   }
-  //this->create_send_data_(0x07, 0x5200, data);
-  //not yet in use
+  data |= ((uint32_t) this->aux0_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux0_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
+  this->create_send_data_(0x07, 0x5200, data);
+}
+
+void SAUNA360Component::set_aux1_relay(bool enable) {
+  uint32_t data = this->aux1_mode_;
+  data = data & 0xDFFFFFFF;
+  data |= (enable) ? (1 << 29) : (0 << 29);
+  data |= ((uint32_t) this->aux1_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux1_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
+  this->create_send_data_(0x07, 0x5201, data);
 }
 
 void SAUNA360Component::set_aux1_relay_mode(const std::string &state) {
@@ -530,7 +613,7 @@ void SAUNA360Component::set_aux1_relay_mode(const std::string &state) {
   auto index = this->aux1_relay_mode_select_->active_index();
   switch (index.value()) {
     case 0: //Not in use
-      data = 0x8000000;
+      data = 0x80000000;
       break;
     case 1: //On/Off 
       data = 0xC0000000;
@@ -538,13 +621,23 @@ void SAUNA360Component::set_aux1_relay_mode(const std::string &state) {
     case 2: //Fragrance 
       data = 0xD0000000;
       break;
-    //pump 100ms...2min
-    //stop 1s...2h
-    // 0x5000A001 pump 100ms stop 1s
-    // 0x52583C20 pump 2min 2h
   }
-  //this->create_send_data_(0x07, 0x5201, data);
-  //not yet in use
+  data |= ((uint32_t) this->aux1_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux1_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
+  this->create_send_data_(0x07, 0x5201, data);
+}
+
+void SAUNA360Component::set_aux2_relay(bool enable) {
+  uint32_t data = this->aux2_mode_;
+  data = data & 0xDFFFFFFF;
+  data |= (enable) ? (1 << 29) : (0 << 29);
+  data |= ((uint32_t) this->aux2_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux2_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
+  this->create_send_data_(0x07, 0x5202, data);
 }
 
 void SAUNA360Component::set_aux2_relay_mode(const std::string &state) {
@@ -552,7 +645,7 @@ void SAUNA360Component::set_aux2_relay_mode(const std::string &state) {
   auto index = this->aux2_relay_mode_select_->active_index();
   switch (index.value()) {
     case 0: //Not in use
-      data = 0x8000000;
+      data = 0x80000000;
       break;
     case 1: //On/Off 
       data = 0xC0000000;
@@ -560,13 +653,12 @@ void SAUNA360Component::set_aux2_relay_mode(const std::string &state) {
     case 2: //Fragrance 
       data = 0xD0000000;
       break;
-      //pump 100ms...2min
-      //stop 1s...2h
-      // 0x5000A001 pump 100ms stop 1s
-      // 0x52583C20 pump 2min 2h
   }
-  //this->create_send_data_(0x07, 0x5202, data);
-  //not yet in use
+  data |= ((uint32_t) this->aux2_fragrance_stop_number_->state);
+  data |= (1 << 13);
+  data |= ((uint32_t) this->aux2_fragrance_pump_number_->state << 15);
+  data |= (1 << 31);
+  this->create_send_data_(0x07, 0x5202, data);
 }
 
 void SAUNA360Component::set_external_switching_mode(const std::string &state) {
@@ -598,17 +690,6 @@ void SAUNA360Component::set_bath_type_priority(const std::string &state) {
       break;
   }
   this->create_send_data_(0x07, 0x6001, data);
-}
-
-
-void SAUNA360Component::set_aux1_relay(bool enable) {
-  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
-  this->create_send_data_(0x07, 0x5201, data);
-}
-
-void SAUNA360Component::set_aux2_relay(bool enable) {
-  uint32_t data = (enable) ? 0xE000A4B0 : 0xC000A4B0;
-  this->create_send_data_(0x07, 0x5202, data);
 }
 
 void SAUNA360Component::set_standby_enable(bool enable) {
