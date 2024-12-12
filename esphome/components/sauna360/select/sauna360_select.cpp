@@ -31,5 +31,10 @@ void Sauna360BathTypePrioritySelect::control(const std::string &value) {
   this->parent_->set_bath_type_priority(value);
 }
 
+void Sauna360FacilityTypeSelect::control(const std::string &value) {
+  this->publish_state(value);
+  this->parent_->set_facility_type(value);
+}
+
 }  // namespace sauna360
 }  // namespace esphome
