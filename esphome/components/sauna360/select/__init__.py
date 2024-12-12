@@ -29,11 +29,19 @@ CONF_BATH_TYPE_PRIORITY_SELECTS = [
     "Humidity",
 ]
 
+CONF_FACILITY_TYPE = "facility_type"
+CONF_FACILITYTYPE_SELECTS = [
+    "Private",
+    "Time controlled",
+    "Supervised",
+]
+
 Sauna360RelayAux0Select = sauna360_ns.class_("Sauna360RelayAux0Select", cg.Component)
 Sauna360RelayAux1Select = sauna360_ns.class_("Sauna360RelayAux1Select", cg.Component)
 Sauna360RelayAux2Select = sauna360_ns.class_("Sauna360RelayAux2Select", cg.Component)
 Sauna360ExternalSwitchSelect = sauna360_ns.class_("Sauna360ExternalSwitchSelect", cg.Component)
 Sauna360BathTypePrioritySelect = sauna360_ns.class_("Sauna360BathTypePrioritySelect", cg.Component)
+Sauna360FacilityTypeSelect = sauna360_ns.class_("Sauna360FacilityTypeSelect", cg.Component)
 
 CONFIG_SCHEMA = {
     cv.GenerateID(CONF_SAUNA360_ID): cv.use_id(SAUNA360Component),
@@ -59,6 +67,11 @@ CONFIG_SCHEMA = {
     ),
     cv.Optional(CONF_BATH_TYPE_PRIORITY): select.select_schema(
         Sauna360BathTypePrioritySelect,
+        entity_category=ENTITY_CATEGORY_CONFIG,
+        icon="mdi:cog-outline"
+    ),
+    cv.Optional(CONF_FACILITY_TYPE): select.select_schema(
+        Sauna360FacilityTypeSelect,
         entity_category=ENTITY_CATEGORY_CONFIG,
         icon="mdi:cog-outline"
     ),
@@ -101,3 +114,10 @@ async def to_code(config):
         )
         await cg.register_parented(sel, config[CONF_SAUNA360_ID])
         cg.add(SAUNA360_component.set_bath_type_priority_select(sel))
+    if facility_type_config := config.get(CONF_FACILITY_TYPE):
+        sel = await select.new_select(
+            facility_type_config,
+            options=CONF_FACILITYTYPE_SELECTS,
+        )
+        await cg.register_parented(sel, config[CONF_SAUNA360_ID])
+        cg.add(SAUNA360_component.set_facility_type_select(sel))

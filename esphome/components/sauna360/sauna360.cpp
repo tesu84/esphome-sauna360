@@ -157,14 +157,17 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
   }
   ESP_LOGCONFIG(TAG, "%s [ HEATER --> PANEL ] CODE %04X DATA 0x%08X", format_hex_pretty(packet).c_str(), code, data);
   if (code == 0x1700) {
-    //Facility type
-    // 0x7BCB4180 also CODE 4003 DATA 0x022D0000 //Private
-    // 0x7BCB4300 also CODE 4003 DATA 0x012D0000 //Time controlled 
-    // 0x7BCB4600 also CODE 4003 DATA 0x002D0000 //Supervised
-    // sends also code 4003 before, 2D0 is pcb temp limit
+    if (data == 0x7BCB4180) {
+      this->facility_type_select_->publish_state("Private");
+    }
+    else if (data == 0x7BCB4300) {
+      this->facility_type_select_->publish_state("Time controlled");
+    }
+    else if (data == 0x7BCB4600) {
+      this->facility_type_select_->publish_state("Supervised");
+    }
   }
   if (code == 0x3400){
-    // State bits 31..0
     std::string value;
     for (auto &listener : listeners_) {listener->on_light_status((data >> 3) & 1);}
     this->light_relay_switch_->publish_state((data >> 3) & 1);
@@ -198,6 +201,9 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->max_bath_temperature_received_hex_ = ((data >> 20) & 0x00FFFFF);
     for (auto &listener : listeners_) {listener->on_max_bath_temperature(max_bath_temperature);}
     this->max_bath_temperature_number_->publish_state(max_bath_temperature);
+    // 0x022D0000
+    // 0x012D0000
+    // 0x002D0000
   }
   else if (code == 0x4003){
     int overheating_pcb_limit = ((data >> 11) & 0x00007FF) / 18;
@@ -475,13 +481,24 @@ void SAUNA360Component::set_humidity_step_number(float value) {
 
 void SAUNA360Component::set_overheating_pcb_limit_number(float value) {
   uint32_t data = (((uint32_t) value * 18) << 11);
-  auto index = this->external_switching_mode_select_->active_index();
-  switch (index.value()) {
+  auto index1 = this->external_switching_mode_select_->active_index();
+  switch (index1.value()) {
     case 0: //On/Off
       data |= 0 << 23;
       break;
     case 1: //Renew Bathtime 
       data |= 1 << 23;
+      break;
+  }
+  auto index2 = this->facility_type_select_->active_index();
+  switch (index2.value()) {
+    case 0: //Private
+      data |= 1 << 25;
+      break;
+    case 1: //Time controlled
+      data |= 1 << 24;
+      break;
+    case 2: //Supervised
       break;
   }
   this->create_send_data_(0x07, 0x4003, data);
@@ -662,14 +679,31 @@ void SAUNA360Component::set_aux2_relay_mode(const std::string &state) {
 }
 
 void SAUNA360Component::set_external_switching_mode(const std::string &state) {
-  uint32_t data = overheating_pcb_limit_received_hex_;
-  auto index = this->external_switching_mode_select_->active_index();
-  switch (index.value()) {
+  uint32_t data;
+  if (this->overheating_pcb_limit_received_hex_) {
+    data |= overheating_pcb_limit_received_hex_;
+  }
+  else {
+    data |= 0x2D0000;
+  }
+  auto index1 = this->external_switching_mode_select_->active_index();
+  switch (index1.value()) {
     case 0: //On/Off
       data |= 0 << 23;
       break;
     case 1: //Renew Bathtime 
       data |= 1 << 23;
+      break;
+  }
+  auto index2 = this->facility_type_select_->active_index();
+  switch (index2.value()) {
+    case 0: //Private
+      data |= 1 << 25;
+      break;
+    case 1: //Time controlled
+      data |= 1 << 24;
+      break;
+    case 2: //Supervised
       break;
   }
   this->create_send_data_(0x07, 0x4003, data);
@@ -690,6 +724,37 @@ void SAUNA360Component::set_bath_type_priority(const std::string &state) {
       break;
   }
   this->create_send_data_(0x07, 0x6001, data);
+}
+
+void SAUNA360Component::set_facility_type(const std::string &state) {
+  uint32_t data;
+  if (this->overheating_pcb_limit_received_hex_) {
+    data |= overheating_pcb_limit_received_hex_;
+  }
+  else {
+    data |= 0x2D0000;
+  }
+  auto index1 = this->external_switching_mode_select_->active_index();
+  switch (index1.value()) {
+    case 0: //On/Off
+      data |= 0 << 23;
+      break;
+    case 1: //Renew Bathtime 
+      data |= 1 << 23;
+      break;
+  }
+  auto index2 = this->facility_type_select_->active_index();
+  switch (index2.value()) {
+    case 0: //Private
+      data |= 1 << 25;
+      break;
+    case 1: //Time controlled
+      data |= 1 << 24;
+      break;
+    case 2: //Supervised
+      break;
+  }
+  this->create_send_data_(0x07, 0x4003, data);
 }
 
 void SAUNA360Component::set_standby_enable(bool enable) {
