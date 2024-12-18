@@ -7,6 +7,7 @@ from esphome.const import (
     UNIT_EMPTY,
     UNIT_CELSIUS,
     UNIT_STEPS,
+    UNIT_PERCENT,
     ICON_TIMER,
     ICON_WATER_PERCENT,
     DEVICE_CLASS_DURATION,
@@ -24,6 +25,7 @@ SAUNA360BathTimeNumber = sauna360_ns.class_("SAUNA360BathTimeNumber", number.Num
 SAUNA360BathTemperatureNumber = sauna360_ns.class_("SAUNA360BathTemperatureNumber", number.Number)
 SAUNA360StandbyTemperatureReductionNumber = sauna360_ns.class_("SAUNA360StandbyTemperatureReductionNumber", number.Number)
 SAUNA360HumidityStepNumber = sauna360_ns.class_("SAUNA360HumidityStepNumber", number.Number)
+SAUNA360HumidityPercentageNumber = sauna360_ns.class_("SAUNA360HumidityPercentageNumber", number.Number)
 SAUNA360MaxBathTemperatureNumber = sauna360_ns.class_("SAUNA360MaxBathTemperatureNumber", number.Number)
 SAUNA360OverheatingPCBLimitNumber = sauna360_ns.class_("SAUNA360OverheatingPCBLimitNumber", number.Number)
 SAUNA360ExternalSwitchRenewBathTimeNumber = sauna360_ns.class_("SAUNA360ExternalSwitchRenewBathTimeNumber", number.Number)
@@ -42,6 +44,8 @@ CONF_STANDBY_TEMPERATURE_REDUCTION ="standby_temperature_reduction"
 CONF_STANDBY_TEMPERATURE_REDUCTION_DEFAULT ="standby_temperature_reduction_default"
 CONF_HUMIDITY_STEP = "humidity_step"
 CONF_HUMIDITY_STEP_DEFAULT = "humidity_step_default"
+CONF_HUMIDITY_PERCENTAGE = "humidity_percentage"
+CONF_HUMIDITY_PERCENTAGE_DEFAULT = "humidity_percentage_default"
 CONF_MAX_BATH_TEMPERATURE = "max_bath_temperature"
 CONF_MAX_BATH_TEMPERATURE_DEFAULT = "max_bath_temperature_default"
 CONF_OVERHEATING_PCB_LIMIT = "overheating_pcb_limit"
@@ -103,6 +107,16 @@ CONFIG_SCHEMA = cv.Schema(
         ).extend(
             {
                 cv.Optional(CONF_HUMIDITY_STEP_DEFAULT): cv.float_range(min=0, max=10),
+            }
+        ),
+        cv.Optional(CONF_HUMIDITY_PERCENTAGE): number.number_schema(
+            SAUNA360HumidityPercentageNumber,
+            device_class=DEVICE_CLASS_HUMIDITY,
+            unit_of_measurement=UNIT_PERCENT,
+            icon=ICON_WATER_PERCENT,
+        ).extend(
+            {
+                cv.Optional(CONF_HUMIDITY_PERCENTAGE_DEFAULT): cv.float_range(min=0, max=70),
             }
         ),
         cv.Optional(CONF_MAX_BATH_TEMPERATURE): number.number_schema(
@@ -232,6 +246,14 @@ async def to_code(config):
       cg.add(sauna360_component.set_humidity_step_number(n))
       if CONF_HUMIDITY_STEP_DEFAULT in humidity_step:
         cg.add(sauna360_component.set_humidity_step_default_value(humidity_step[CONF_HUMIDITY_STEP_DEFAULT]))
+    if humidity_percentage := config.get(CONF_HUMIDITY_PERCENTAGE):
+      n = await number.new_number(
+        humidity_percentage, min_value=0, max_value=70, step=1,
+      )
+      await cg.register_parented(n, sauna360_component)
+      cg.add(sauna360_component.set_humidity_percentage_number(n))
+      if CONF_HUMIDITY_PERCENTAGE_DEFAULT in humidity_percentage:
+        cg.add(sauna360_component.set_humidity_percentage_default_value(humidity_percentage[CONF_HUMIDITY_PERCENTAGE_DEFAULT]))
     if max_bath_temperature := config.get(CONF_MAX_BATH_TEMPERATURE):
       n = await number.new_number(
         max_bath_temperature, min_value=40, max_value=110, step=1,

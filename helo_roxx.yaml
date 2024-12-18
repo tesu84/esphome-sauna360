@@ -1,0 +1,148 @@
+# example configuration from dev branch
+# devices Atom S3 Lite + tail485
+# heater Helo Roxx, with basic features.
+
+substitutions:
+  device_name: olea103
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/tesu84/esphome-sauna360/
+      ref: develop
+    components: [ sauna360 ]
+
+esphome:
+  name: ${device_name}
+  friendly_name: "Helo Roxx"
+  comment: ${device_name} sauna controller
+  area: Sauna
+
+esp32:
+  #change right board for your device
+  board: esp32-s3-devkitc-1
+
+# Enable logging
+logger:
+  level: DEBUG
+  # disable putting logging on the HW uart
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+
+# Enable OTA updates and read logs with wifi
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+
+uart:
+    # change right pins for your ESPhome device
+    rx_pin: GPIO1
+    tx_pin: GPIO2
+    baud_rate: 19200
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 1
+
+sauna360:
+  #flow_control_pin: GPIO7 #PIN to set transmit DE ~RE pins high on RS485 board
+
+binary_sensor:
+- platform: sauna360
+  heater_status:
+    name: "Heater Status"
+- platform: sauna360
+  ready_status: 
+    name: "Ready Status"
+
+sensor:
+- platform: wifi_signal
+  name: "${device_name} WiFi Signal"
+  update_interval: 60s
+  icon: "mdi:wifi"
+- platform: sauna360
+  current_temperature:
+    name: "Current Temperature"
+- platform: sauna360
+  setting_temperature:
+    name: "Setting Temperature"
+- platform: sauna360
+  remaining_time:
+    name: "Remaining Time"
+- platform: sauna360
+  setting_bath_time:
+    name: "Setting Bath Time"
+- platform: sauna360
+  total_uptime:
+    name: "Total Uptime"
+- platform: sauna360
+  max_bath_temperature:
+    name: "Max Bath Temperature"
+- platform: sauna360
+  standby_temperature_reduction:
+    name: "Standby Temperature Reduction"
+
+button:
+- platform: sauna360
+  heater_on:
+    name: "On"
+- platform: sauna360
+  heater_off:
+    name: "Off "
+- platform: sauna360
+  heater_standby:
+    name: "Standby"
+- platform: sauna360
+  heater_power_toggle:
+    name: "Power Toggle"
+
+number:
+- platform: sauna360
+  bath_time:
+    name: "Bath Time"
+    mode: box # box / slider
+    bath_time_default: 90 #1-360min
+- platform: sauna360
+  bath_temperature:
+    name: "Bath Temperature"
+    mode: box # box / slider
+    bath_temperature_default: 65 #40-110°C
+- platform: sauna360
+  standby_temperature_reduction:
+    name: "Standby Temperature Reduction"
+    mode: box # box / slider
+    standby_temperature_reduction_default: 30 #0-30°C
+- platform: sauna360
+  max_bath_temperature:
+    name: "Max Bath Temperature"
+    mode: box # box / slider
+    max_bath_temperature_default: 90 #40-110°C
+
+switch:
+- platform: sauna360
+  standby_enable:
+    name: "Standby Enable"
+- platform: sauna360
+  activate_time_limit:
+    name: "Activate Time Limit"
+
+text_sensor:
+- platform: sauna360
+  heater_state:
+    name: "Heater State"
+
+time:
+  - platform: homeassistant
+
+datetime:
+- platform: sauna360
+  name: "Datetime"
+  not_allowed_start_from:
+    name: "Not Allowed Start From"
+  not_allowed_start_until:
+    name: "Not Allowed Start Until"

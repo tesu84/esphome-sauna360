@@ -172,6 +172,8 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_light_status((data >> 3) & 1);}
     this->light_relay_switch_->publish_state((data >> 3) & 1);
     for (auto &listener : listeners_) {listener->on_heater_status((data >> 4) & 1);}
+    this->state_changed_ = true;
+    this->heating_status_ = ((data >> 4) & 1);
     if ((data >> 4) & 1){
       for (auto &listener : listeners_) {listener->on_ready_status(true);}
       value = "Heating";
@@ -185,6 +187,9 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
       value = "Standby";
       for (auto &listener : listeners_) {listener->on_heater_state(value); }
     }
+  }
+  if (code == 0x3801){
+    //ESP_LOGCONFIG(TAG, "ELITE TEMP/RH SENSOR, DATA 0x%08X", data);
   }
   else if (code == 0x4002){
     int value = (data & 0xFFF);
@@ -201,9 +206,6 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->max_bath_temperature_received_hex_ = ((data >> 20) & 0x00FFFFF);
     for (auto &listener : listeners_) {listener->on_max_bath_temperature(max_bath_temperature);}
     this->max_bath_temperature_number_->publish_state(max_bath_temperature);
-    // 0x022D0000
-    // 0x012D0000
-    // 0x002D0000
   }
   else if (code == 0x4003){
     int overheating_pcb_limit = ((data >> 11) & 0x00007FF) / 18;
@@ -320,24 +322,36 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->standby_temperature_reduction_number_->publish_state(standby_temperature_reduction);
   }
   else if (code == 0x6001) {
-    int humidity_setting = (((data >> 4) & 0x00000FF) - 40) / 8;
-    for (auto &listener : listeners_) {listener->on_humidity(humidity_setting);}
-    this->humidity_step_number_->publish_state(humidity_setting);
-    this->bath_type_priority_received_hex_ = ((data) & 0x000F000);
-    if (((data) & 0x0000F000) == 0x3000){
+      this->humidity_received_hex_ = ((data) & 0xF0003FFF);
+    if ((data & 0xF0000000 ) == 0) {
+      int humidity_setting = (((data >> 4) & 0x00000FF) - 40) / 8;
+      for (auto &listener : listeners_) {listener->on_humidity(humidity_setting);}
+      this->humidity_step_number_->publish_state(humidity_setting);
+      this->bath_type_priority_received_hex_ = ((data) & 0x000F000);
+    }
+    else {
+      int humidity_percentage_setting = ((data >> 7) & 0x3F);
+      for (auto &listener : listeners_) {listener->on_humidity_percentage_setting(humidity_percentage_setting);}
+      int humidity_percentage = (data & 0x7F);
+      for (auto &listener : listeners_) {listener->on_humidity_percentage(humidity_percentage);}
+      this->bath_type_priority_received_hex_ = ((data) & 0xF000C000);
+    }
+    if (((data >> 14) & 3) == 0){
       this->bath_type_priority_select_->publish_state("Automatic");
     }
-    if (((data) & 0x0000F000) == 0x7000){
+    if (((data >> 14) & 3) == 1){ // 0x4000
       this->bath_type_priority_select_->publish_state("Temperature");
     }
-    if (((data) & 0x0000F000) == 0xB000){
+    if (((data >> 14) & 3) == 2){ // 0x8000
       this->bath_type_priority_select_->publish_state("Humidity");
     }
-    //for (auto &listener : listeners_) {listener->on_humidity_percentage(humidity_percentage);}
-    //humidity percentage might also be in this code? cant really test until have combi elite Rh% sensor. 
   }
   else if (code == 0x7000){
-    //command acknowledge
+    if (!this->state_changed_ && !this->heating_status_) {
+      std::string value = "Operation blocked by not allowed start";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+    }
+    this->state_changed_ = false;
   }
   else if (code == 0x7180) {
     for (auto &listener : listeners_) {listener->on_relay_x3_x4_status((data >> 0) & 1);}
@@ -409,6 +423,16 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
       this->create_send_data_(0x07, 0xB000, 0x00130103);
     }
   }
+  else if ((code & 0xFF00) == 0xB600){
+    if ((code & 0xFF) % 2 == 0) {
+      std::string value = "Room temperature sensor not connected or malfunctioning";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+    }
+    else {
+      std::string value = "High temperature limit control have tripout, must be reset";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+    }
+  }
   else {
     ESP_LOGCONFIG(TAG, "^^^^^^^^^^^^^^^^^^^^^^^ PACKET NOT HANDLED YET ");
   }
@@ -420,16 +444,18 @@ void SAUNA360Component::set_heater_on() {
 }
 
 void SAUNA360Component::set_heater_off() {
-  this->create_send_data_(0x07, 0x7000, 0x00000080);
+  if (this->heating_status_) {
+      this->create_send_data_(0x07, 0x7000, 0x00000080);
   }
+}
 
 void SAUNA360Component::set_heater_standby() {
   this->create_send_data_(0x07, 0x7000, 0x004000C0);
-  }
+}
 
 void SAUNA360Component::set_heater_power_toggle() { 
   this->create_send_data_(0x07, 0x7000, 0x00000001);
-  }
+}
 
 void SAUNA360Component::set_bath_time_number(float value) {
   if ((value > 60) && (value < 120)) {value+=4;}
@@ -478,6 +504,13 @@ void SAUNA360Component::set_humidity_step_number(float value) {
   data |= (((uint32_t) value * 8 + 40 ) << 4);
   this->create_send_data_(0x07, 0x6001, data);
 }
+
+void SAUNA360Component::set_humidity_percentage_number(float value) {
+  uint32_t data = this->bath_type_priority_received_hex_;
+  data |= ((uint32_t) value << 7);
+  this->create_send_data_(0x07, 0x6001, data);
+}
+
 
 void SAUNA360Component::set_overheating_pcb_limit_number(float value) {
   uint32_t data = (((uint32_t) value * 18) << 11);
@@ -710,17 +743,17 @@ void SAUNA360Component::set_external_switching_mode(const std::string &state) {
 }
 
 void SAUNA360Component::set_bath_type_priority(const std::string &state) {
-  uint32_t data;
+  uint32_t data = this->humidity_received_hex_;
   auto index = this->bath_type_priority_select_->active_index();
   switch (index.value()) {
     case 0: //Automatic
-      data |= 0x3 << 12;
+      data |= 0 << 14;
       break;
     case 1: //Temperature 
-      data |= 0x7 << 12;
+      data |= 1 << 14;
       break;
     case 2: //Humidity
-      data |= 0xB << 12;
+      data |= 2 << 14;
       break;
   }
   this->create_send_data_(0x07, 0x6001, data);

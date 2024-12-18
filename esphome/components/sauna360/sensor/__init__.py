@@ -26,6 +26,7 @@ CONF_SETTING_TEMPERATURE = "setting_temperature"
 CONF_REMAINING_TIME = "remaining_time"
 CONF_HUMIDITY_SETTING = "humidity_setting"
 CONF_HUMIDITY_PERCENTAGE = "humidity_percentage"
+CONF_HUMIDITY_PERCENTAGE_SETTING = "humidity_percentage_setting"
 CONF_SETTING_BATH_TIME = "setting_bath_time"
 CONF_TOTAL_UPTIME = "total_uptime"
 CONF_MAX_BATH_TEMPERATURE = "max_bath_temperature"
@@ -65,6 +66,13 @@ CONFIG_SCHEMA = cv.All(
             icon=ICON_WATER_PERCENT,
             ),
           cv.Optional(CONF_HUMIDITY_PERCENTAGE): sensor.sensor_schema(
+            unit_of_measurement="%",
+            accuracy_decimals=0,
+            device_class="humidity",
+            state_class=STATE_CLASS_MEASUREMENT,
+            icon=ICON_WATER_PERCENT,
+            ),
+          cv.Optional(CONF_HUMIDITY_PERCENTAGE_SETTING): sensor.sensor_schema(
             unit_of_measurement="%",
             accuracy_decimals=0,
             device_class="humidity",
@@ -132,6 +140,9 @@ async def to_code(config):
     if CONF_HUMIDITY_PERCENTAGE in config:
       sens = await sensor.new_sensor(config[CONF_HUMIDITY_PERCENTAGE])
       cg.add(var.set_humidity_percentage_sensor(sens))
+    if CONF_HUMIDITY_PERCENTAGE_SETTING in config:
+      sens = await sensor.new_sensor(config[CONF_HUMIDITY_PERCENTAGE_SETTING])
+      cg.add(var.set_humidity_percentage_setting_sensor(sens))
     if CONF_SETTING_BATH_TIME in config:
       sens = await sensor.new_sensor(config[CONF_SETTING_BATH_TIME])
       cg.add(var.set_bath_time_setting_sensor(sens))
