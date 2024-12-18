@@ -38,6 +38,14 @@ class SAUNA360HumidityStepNumber : public number::Number, public Parented<SAUNA3
   void control(float value) override;
 };
 
+class SAUNA360HumidityPercentageNumber : public number::Number, public Parented<SAUNA360Component> {
+ public:
+  SAUNA360HumidityPercentageNumber() = default;
+
+ protected:
+  void control(float value) override;
+};
+
 class SAUNA360MaxBathTemperatureNumber : public number::Number, public Parented<SAUNA360Component> {
  public:
   SAUNA360MaxBathTemperatureNumber() = default;

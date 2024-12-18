@@ -42,6 +42,7 @@ class SAUNA360Listener {
    virtual void on_remaining_time(uint16_t remaining_time){};
    virtual void on_humidity(uint16_t humidity){};
    virtual void on_humidity_percentage(uint16_t humidity_percentage){};
+   virtual void on_humidity_percentage_setting(uint16_t humidity_percentage_setting){};
    virtual void on_bath_time_setting (uint16_t bath_time_setting){};
    virtual void on_total_uptime (uint16_t bath_time_setting){};
    virtual void on_max_bath_temperature (uint16_t max_bath_temperature){};
@@ -73,6 +74,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     SUB_NUMBER(bath_temperature)
     SUB_NUMBER(standby_temperature_reduction)
     SUB_NUMBER(humidity_step)
+    SUB_NUMBER(humidity_percentage)
     SUB_NUMBER(max_bath_temperature)
     SUB_NUMBER(overheating_pcb_limit)
     SUB_NUMBER(external_switch_renew_bathtime)
@@ -123,6 +125,8 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_standby_temperature_reduction_default_value(float standby_temperature_reduction_default) { standby_temperature_reduction_default_ = standby_temperature_reduction_default; }
     void set_humidity_step_number(float value);
     void set_humidity_step_default_value(float humidity_step_default) { humidity_step_default_ = humidity_step_default; }
+    void set_humidity_percentage_number(float value);
+    void set_humidity_percentage_default_value(float humidity_percentage_default) { humidity_percentage_default_ = humidity_percentage_default; }
     void set_max_bath_temperature_number(float value);
     void set_max_bath_temperature_default_value(float max_bath_temperature_default) { max_bath_temperature_default_ = max_bath_temperature_default; }
     void set_overheating_pcb_limit_number(float value);
@@ -177,9 +181,12 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     uint32_t external_switch_renew_bathtime_received_hex_;
     uint32_t overheating_pcb_limit_received_hex_;
     uint32_t bath_type_priority_received_hex_;
+    uint32_t humidity_received_hex_;
     ESPTime time_limit_from_;
     ESPTime time_limit_until_;
     bool activate_time_limit_;
+    bool state_changed_;
+    bool heating_status_;
     uint32_t aux0_mode_;
     uint32_t aux1_mode_;
     uint32_t aux2_mode_;
@@ -188,6 +195,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     float bath_temperature_default_{NAN};
     float standby_temperature_reduction_default_{NAN};
     float humidity_step_default_{NAN};
+    float humidity_percentage_default_{NAN};
     float max_bath_temperature_default_{NAN};
     float overheating_pcb_limit_default_{NAN};
     float external_switch_renew_bathtime_default_{NAN};

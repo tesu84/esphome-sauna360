@@ -49,6 +49,14 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
       }
     }
   }
+  void set_humidity_percentage_setting_sensor(sensor::Sensor *sensor) { this->humidity_percentage_setting_sensor_ = sensor; }
+  void on_humidity_percentage_setting(uint16_t humidity_percentage_setting) override {
+    if (this->humidity_percentage_setting_sensor_ != nullptr) {
+      if (this->humidity_percentage_setting_sensor_->get_state() != humidity_percentage_setting) {
+        this->humidity_percentage_setting_sensor_->publish_state(humidity_percentage_setting);
+      }
+    }
+  }
   void set_bath_time_setting_sensor(sensor::Sensor *sensor) { this->bath_time_setting_sensor_ = sensor; }
   void on_bath_time_setting(uint16_t bath_time_setting) override {
     if (this->bath_time_setting_sensor_ != nullptr) {
@@ -103,6 +111,7 @@ class SAUNA360Sensor : public SAUNA360Listener, public Component, sensor::Sensor
   sensor::Sensor *remaining_time_sensor_{nullptr};
   sensor::Sensor *humidity_sensor_{nullptr};
   sensor::Sensor *humidity_percentage_sensor_{nullptr};
+  sensor::Sensor *humidity_percentage_setting_sensor_{nullptr};
   sensor::Sensor *bath_time_setting_sensor_{nullptr};
   sensor::Sensor *total_uptime_sensor_{nullptr};
   sensor::Sensor *max_bath_temperature_sensor_{nullptr};

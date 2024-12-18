@@ -1,11 +1,15 @@
-# dev configuration
-# with web server
+# example full configuration from dev branch
+# devices Atom S3 Lite + tail485
 
 substitutions:
-  device_name: helo
+  device_name: olea103
 
 external_components:
-  - source: esphome/components
+  - source:
+      type: git
+      url: https://github.com/tesu84/esphome-sauna360/
+      ref: develop
+    components: [ sauna360 ]
 
 esphome:
   name: ${device_name}
@@ -21,7 +25,7 @@ esp32:
 logger:
   level: DEBUG
   # disable putting logging on the HW uart
-  #baud_rate: 0
+  baud_rate: 0
 
 # Enable Home Assistant API
 api:
@@ -34,18 +38,6 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   power_save_mode: none
-  #recommended to manually configure ip address
-  manual_ip:
-    # Set this to the IP of the ESPhome device
-    static_ip: 192.168.1.192
-    # Set this to the IP address of the router. Often ends with .1
-    gateway: 192.168.1.1
-    # The subnet of the network. 255.255.255.0 works for most home networks.
-    subnet: 255.255.255.0
-
-web_server:
-  port: 80
-  version: 3
 
 uart:
     # change right pins for your ESPhome device
@@ -62,37 +54,37 @@ sauna360:
 binary_sensor:
 - platform: sauna360
   heater_status:
-    name: "Bsensor Heating Status"
+    name: "Heater Status"
 - platform: sauna360
   light_status:
-    name: "Bsensor Light Status"
+    name: "Light Status"
 - platform: sauna360
   ready_status: 
-    name: "Bsensor Ready Status"
+    name: "Ready Status"
 - platform: sauna360
   relay_x3_x4_status: 
-    name: "Bsensor Relay X3-X4 Status"
+    name: "Relay X3-X4 Status"
 - platform: sauna360
   relay_x5_x6_status: 
-    name: "Bsensor Relay X5-X6 Status"
+    name: "Relay X5-X6 Status"
 - platform: sauna360
   relay_x7_x8_status: 
-    name: "Bsensor Relay X7-X8 Status"
+    name: "Relay X7-X8 Status"
 - platform: sauna360
   relay_x9_x10_status: 
-    name: "Bsensor Relay X9-X10 Status"
+    name: "Relay X9-X10 Status"
 - platform: sauna360
   relay_x11_x12_status: 
-    name: "Bsensor Relay X11-X12 Status"
+    name: "Relay X11-X12 Status"
 - platform: sauna360
   relay_x13_x14_status: 
-    name: "Bsensor Relay X13-X14 Status"
+    name: "Relay X13-X14 Status"
 - platform: sauna360
   relay_x15_x16_status: 
-    name: "Bsensor Relay X15-X16 Status"
+    name: "Relay X15-X16 Status"
 - platform: sauna360
   relay_x17_x18_status: 
-    name: "Bsensor Relay X17-X18 Status"
+    name: "Relay X17-X18 Status"
 
 sensor:
 - platform: wifi_signal
@@ -101,16 +93,16 @@ sensor:
   icon: "mdi:wifi"
 - platform: sauna360
   current_temperature:
-    name: "Sensor Current Temperature"
+    name: "Current Temperature"
 - platform: sauna360
   setting_temperature:
-    name: "Sensor Setting Temperature"
+    name: "Setting Temperature"
 - platform: sauna360
   remaining_time:
-    name: "Sensor Remaining time"
+    name: "Remaining Time"
 - platform: sauna360
   setting_bath_time:
-    name: "Sensor Setting Bath Time"
+    name: "Setting Bath Time"
 - platform: sauna360
   humidity_setting: #combi/steam pure models 1-10
     name: "Sensor Setting Humidity Step"
@@ -119,156 +111,158 @@ sensor:
     name: "Sensor Setting Humidity Percentage"
 - platform: sauna360
   humidity_percentage: #combi/steam elite models with Rh% Sensor
-    name: "Sensor Humidity"
+- platform: sauna360
+  humidity_percentage:
+    name: "Humidity"
 - platform: sauna360
   total_uptime:
-    name: "Sensor Total Uptime"
+    name: "Total Uptime"
 - platform: sauna360
   max_bath_temperature:
-    name: "Sensor Max Bath Temperature"
+    name: "Max Bath Temperature"
 - platform: sauna360
   overheating_pcb_limit:
-    name: "Sensor Overheating PCB Limit"
+    name: "Overheating PCB Limit"
 - platform: sauna360
   standby_temperature_reduction:
-    name: "Sensor Standby Temperature Reduction"
+    name: "Standby Temperature Reduction"
 - platform: sauna360
   external_switch_renew_bathtime:
-    name: "Sensor External Switch Renew Bathtime"
+    name: "External Switch Renew Bathtime"
 
 button:
 - platform: sauna360
   heater_on:
-    name: "Button On"
+    name: "On"
 - platform: sauna360
   heater_off:
-    name: "Button Off "
+    name: "Off "
 - platform: sauna360
-  heater_standby: #Standby needs to be enabled (switch)
-    name: "Button Standby"
+  heater_standby:
+    name: "Standby"
 - platform: sauna360
   heater_power_toggle:
-    name: "Button Power Toggle"
+    name: "Power Toggle"
 
 number:
 - platform: sauna360
   bath_time:
-    name: "Number Bath Time"
+    name: "Bath Time"
     mode: box # box / slider
     bath_time_default: 90 #1-360min
 - platform: sauna360
   bath_temperature:
-    name: "Number Bath Temperature"
+    name: "Bath Temperature"
     mode: box # box / slider
     bath_temperature_default: 65 #40-110°C
 - platform: sauna360
   standby_temperature_reduction:
-    name: "Number Standby Temperature Reduction"
+    name: "Standby Temperature Reduction"
     mode: box # box / slider
     standby_temperature_reduction_default: 30 #0-30°C
 - platform: sauna360
   humidity_step:
-    name: "Number Humidity Step Setting"
+    name: "Humidity Step Setting"
     mode: box # box / slider
-    humidity_step_default: 2 # combi/steam pure models 0-10
+    humidity_step_default: 2 #0-10
 - platform: sauna360
   humidity_percentage:
     name: "Number Humidity percentage Setting"
     mode: box # box / slider
-    humidity_percentage_default: 10 # combi/steam elite models 0-70%
+    humidity_percentage_default: 10 #0-70%
 - platform: sauna360
   max_bath_temperature:
-    name: "Number Max Bath Temperature"
+    name: "Max Bath Temperature"
     mode: box # box / slider
     max_bath_temperature_default: 90 #40-110°C
 - platform: sauna360
   overheating_pcb_limit:
-    name: "Number Overheating PCB Limit"
+    name: "Overheating PCB Limit"
     mode: box # box / slider
     overheating_pcb_limit_default: 80 #70-90°C
 - platform: sauna360
   external_switch_renew_bathtime:
-    name: "Number External Switch Renew Bath Time"
+    name: "External Switch Renew Bath Time"
     mode: box # box / slider
     external_switch_renew_bathtime_default: 90 #1-360min
 - platform: sauna360
   aux0_fragrance_pump:
-    name: "Number Aux0 Fragrance Pump"
+    name: "Aux0 Fragrance Pump"
     mode: box # box / slider
     aux0_fragrance_pump_default: 10 #1-1200*100ms 10=1s
 - platform: sauna360
   aux0_fragrance_stop:
-    name: "Number Aux0 Fragrance Stop"
+    name: "Aux0 Fragrance Stop"
     mode: box # box / slider
     aux0_fragrance_stop_default: 10 #1-7200s
 - platform: sauna360
   aux1_fragrance_pump:
-    name: "Number Aux1 Fragrance Pump"
+    name: "Aux1 Fragrance Pump"
     mode: box # box / slider
     aux1_fragrance_pump_default: 10 #1-1200*100ms 10=1s
 - platform: sauna360
   aux1_fragrance_stop:
-    name: "Number Aux1 Fragrance Stop"
+    name: "Aux1 Fragrance Stop"
     mode: box # box / slider
     aux1_fragrance_stop_default: 10 #1-7200s
 - platform: sauna360
   aux2_fragrance_pump:
-    name: "Number Aux2 Fragrance Pump"
+    name: "Aux2 Fragrance Pump"
     mode: box # box / slider
     aux2_fragrance_pump_default: 10 #1-1200*100ms 10=1s
 - platform: sauna360
   aux2_fragrance_stop:
-    name: "Number Aux2 Fragrance Stop"
+    name: "Aux2 Fragrance Stop"
     mode: box # box / slider
     aux2_fragrance_stop_default: 10 #1-7200s
 
 switch:
 - platform: sauna360
   light_relay:
-    name: "Switch Light"
+    name: "Light"
 - platform: sauna360
   aux0_relay:
-    name: "Switch Aux 0 (FAN)" #FAN
+    name: "Aux 0" #Relay X15-X16
 - platform: sauna360
   aux1_relay:
-    name: "Switch Aux 1"
+    name: "Aux 1" #Relay X11-X12
 - platform: sauna360
   aux2_relay:
-    name: "Switch Aux 2"
+    name: "Aux 2"
 - platform: sauna360
   standby_enable:
-    name: "Switch Standby Enable"
+    name: "Standby Enable"
 - platform: sauna360
   activate_time_limit:
-    name: "Switch Activate Time Limit"
+    name: "Activate Time Limit"
 
 select:
 - platform: sauna360
   relay_aux0_mode:
-    name: "Select Relay Aux0 Mode"
+    name: "Relay Aux0 Mode"
 - platform: sauna360
   relay_aux1_mode:
-    name: "Select Relay Aux1 Mode"
+    name: "Relay Aux1 Mode"
 - platform: sauna360
   relay_aux2_mode:
-    name: "Select Relay Aux2 Mode"
+    name: "Relay Aux2 Mode"
 - platform: sauna360
   external_switching_mode:
-    name: "Select External Switch Mode"
+    name: "External Switch Mode"
 - platform: sauna360
   bath_type_priority:
-    name: "Select Bath Type Priority"
+    name: "Bath Type Priority"
 - platform: sauna360
   facility_type:
-    name: "Select Facility Type"
+    name: "Facility Type"
 
 text_sensor:
 - platform: sauna360
   heater_state:
-    name: "TSensor Heater State"
+    name: "Heater State"
 - platform: sauna360
   water_level:
-    name: "TSensor Water Level"
+    name: "Water Level"
 
 time:
   - platform: homeassistant
