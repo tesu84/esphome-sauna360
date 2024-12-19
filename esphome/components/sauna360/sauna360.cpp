@@ -68,6 +68,7 @@ void SAUNA360Component::setup() {
   if (!this->aux2_mode_) {
     this->aux2_mode_ = 0x80000000;
   }
+  for (auto &listener : listeners_) {listener->on_ready_status(true);}
 }
 
 void SAUNA360Component::loop() {
@@ -175,7 +176,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     this->state_changed_ = true;
     this->heating_status_ = ((data >> 4) & 1);
     if ((data >> 4) & 1){
-      for (auto &listener : listeners_) {listener->on_ready_status(true);}
+      for (auto &listener : listeners_) {listener->on_ready_status(false);}
       value = "Heating";
       for (auto &listener : listeners_) {listener->on_heater_state(value);}
     }
@@ -339,10 +340,10 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     if (((data >> 14) & 3) == 0){
       this->bath_type_priority_select_->publish_state("Automatic");
     }
-    if (((data >> 14) & 3) == 1){ // 0x4000
+    if (((data >> 14) & 3) == 1){
       this->bath_type_priority_select_->publish_state("Temperature");
     }
-    if (((data >> 14) & 3) == 2){ // 0x8000
+    if (((data >> 14) & 3) == 2){
       this->bath_type_priority_select_->publish_state("Humidity");
     }
   }
@@ -391,13 +392,11 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     time_from.hour = ((data >> 6) & 0x1F);
     for (auto &listener : listeners_) {listener-> on_not_allowed_start_from_time(time_from);}
     this->time_limit_from_ = time_from;
-    ESP_LOGCONFIG(TAG, "FROM %d:%d", time_from.hour, time_from.minute);
     ESPTime time_until;
     time_until.minute = ((data >> 11) & 0x3F);
     time_until.hour = ((data >> 17) & 0x1F);
     for (auto &listener : listeners_) {listener-> on_not_allowed_start_until_time(time_until);}
     this->time_limit_until_ = time_until;
-    ESP_LOGCONFIG(TAG, "UNTIL %d:%d", time_until.hour, time_until.minute);
   }
   else if (code == 0x9400){
     for (auto &listener : listeners_) {listener->on_total_uptime(data);}
@@ -406,7 +405,7 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
     for (auto &listener : listeners_) {listener->on_remaining_time(data);}
   }
   else if (code == 0xB000){
-    for (auto &listener : listeners_) {listener->on_ready_status((data) & 1);}
+    for (auto &listener : listeners_) {listener->on_ready_status((~data) & 1);}
     if (data == 0x00060001){
       std::string value = "Operation blocked by not allowed start";
       for (auto &listener : listeners_) {listener->on_heater_state(value);}
@@ -422,13 +421,18 @@ void SAUNA360Component::handle_packet_(std::vector<uint8_t> packet) {
       for (auto &listener : listeners_) {listener->on_heater_state(value);}
       this->create_send_data_(0x07, 0xB000, 0x00130103);
     }
+    if (data == 0x00140003){
+      std::string value = "Door has been open, check sauna";
+      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+      this->create_send_data_(0x07, 0xB000, 0x00140000);
+    }
   }
   else if ((code & 0xFF00) == 0xB600){
-    if ((code & 0xFF) % 2 == 0) {
+    if ((data & 0xF0000000) == 0x30000000) {
       std::string value = "Room temperature sensor not connected or malfunctioning";
-      for (auto &listener : listeners_) {listener->on_heater_state(value);}
+      for (auto &listener : listeners_) {listener->on_heater_state(value);} 
     }
-    else {
+    if ((data & 0xF0000000) == 0x10000000) {
       std::string value = "High temperature limit control have tripout, must be reset";
       for (auto &listener : listeners_) {listener->on_heater_state(value);}
     }
