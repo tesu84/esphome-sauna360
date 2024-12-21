@@ -105,12 +105,13 @@ sensor:
     name: "Setting Bath Time"
 - platform: sauna360
   humidity_setting: #combi/steam pure models 1-10
-    name: "Sensor Setting Humidity Step"
+    name: "Setting Humidity Step"
 - platform: sauna360
   humidity_percentage_setting: #combi/steam elite models with Rh% Sensor
-    name: "Sensor Setting Humidity Percentage"
+    name: "Setting Humidity Percentage"
 - platform: sauna360
   humidity_percentage: #combi/steam elite models with Rh% Sensor
+    name: "Humidity"
 - platform: sauna360
   humidity_percentage:
     name: "Humidity"
