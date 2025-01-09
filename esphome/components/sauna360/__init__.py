@@ -8,6 +8,8 @@ from esphome.const import (
 )
 from esphome import pins
 
+#AUTO_LOAD = ["binary_sensor","button","datetime","number","select","sensor","switch","text_sensor"]
+CODEOWNERS = ["@tesu84"]
 DEPENDENCIES = ["uart"]
 
 sauna360_ns = cg.esphome_ns.namespace("sauna360")

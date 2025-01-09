@@ -3,7 +3,6 @@
 #include "esphome/components/uart/uart_component.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/component.h"
-#include "esphome/components/number/number.h"
 #include "esphome/core/preferences.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/time.h"
@@ -16,6 +15,9 @@ namespace sauna360 {
 static const char *TAG = "sauna360";
 
 void SAUNA360Component::setup() {
+
+  this->high_freq_.start(); 
+
   if (this->flow_control_pin_ != nullptr) {
     this->flow_control_pin_->setup();
   }
@@ -77,9 +79,7 @@ void SAUNA360Component::loop() {
     this->read_byte(&c);
     this->handle_char_(c);
   }
-  if ( (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 200)){
-    send_data_();
-  }
+  this->last_rx_ = micros();
 }
 
 void SAUNA360Component::handle_char_(uint8_t c) {
@@ -93,6 +93,9 @@ void SAUNA360Component::handle_char_(uint8_t c) {
     this->rx_message_.push_back(c);
     std::vector<uint8_t> frame(this->rx_message_.begin(), this->rx_message_.end());
     size_t len = frame.size();
+    if ((frame[3] == 0x6D) && (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 200)){
+      send_data_();
+    }
     if (len > 6){
       this->handle_frame_(frame);
     }
@@ -890,22 +893,18 @@ void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t 
 }
 
 void SAUNA360Component::send_data_() {
-  if (!this->tx_queue_.empty()) {
+  if (micros() - last_rx_ < 500) {
     auto packet = std::move(this->tx_queue_.front());
     this->tx_queue_.pop();
     ESP_LOGCONFIG(TAG, "%s SENDING FROM TX QUEUE:", format_hex_pretty(packet).c_str());
     if (this->flow_control_pin_ != nullptr) {
-      ESP_LOGCONFIG(TAG, "FLOW CONTROL ON");
-    }
-    for (int i = 0; i < 40; i++) {
-      this->write_byte(0x00);
+      this->flow_control_pin_->digital_write(true);
     }
     this->write_array(packet);
     this->flush();
     this->last_tx_ = millis();
     if (this->flow_control_pin_ != nullptr) {
       this->flow_control_pin_->digital_write(false);
-      ESP_LOGCONFIG(TAG, "FLOW CONTROL OFF"); 
     }
   ESP_LOGCONFIG(TAG, "DATA SENT SUCCESFULLY");
   }

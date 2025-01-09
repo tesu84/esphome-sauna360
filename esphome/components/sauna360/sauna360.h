@@ -5,6 +5,7 @@
 #include "esphome/core/automation.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/gpio.h"
+#include "esphome/core/time.h"
 
 #ifdef USE_SENSOR
 #include "esphome/components/sensor/sensor.h"
@@ -163,6 +164,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void set_not_allowed_start_until_time(ESPTime &time);
 
   protected:
+    esphome::HighFrequencyLoopRequester high_freq_;
     GPIOPin *flow_control_pin_{nullptr};
     void handle_char_(uint8_t c);
     void handle_frame_(std::vector<uint8_t> frame);
@@ -172,6 +174,7 @@ class SAUNA360Component : public uart::UARTDevice, public Component {
     void create_send_data_(uint8_t type, uint16_t code, uint32_t data);
     std::vector<uint8_t> rx_message_;
     std::queue<std::vector<uint8_t>> tx_queue_;
+    uint32_t last_rx_;
     uint32_t last_tx_;
     uint32_t temperature_received_hex_;
     uint32_t setpoint_temperature_received_hex_;
