@@ -93,7 +93,7 @@ void SAUNA360Component::handle_char_(uint8_t c) {
     this->rx_message_.push_back(c);
     std::vector<uint8_t> frame(this->rx_message_.begin(), this->rx_message_.end());
     size_t len = frame.size();
-    if ((frame[3] == 0x6D) && (!this->tx_queue_.empty()) && (millis() - this->last_tx_ > 200)){
+    if ((frame[3] == 0x6D) && (!this->tx_queue_.empty())){
       send_data_();
     }
     if (len > 6){
@@ -893,7 +893,7 @@ void SAUNA360Component::create_send_data_(uint8_t type, uint16_t code, uint32_t 
 }
 
 void SAUNA360Component::send_data_() {
-  if (micros() - last_rx_ < 500) {
+  if (micros() - last_rx_ < 1500) {
     auto packet = std::move(this->tx_queue_.front());
     this->tx_queue_.pop();
     ESP_LOGCONFIG(TAG, "%s SENDING FROM TX QUEUE:", format_hex_pretty(packet).c_str());
